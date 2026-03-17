@@ -1,3 +1,7 @@
+> [!IMPORTANT]
+>
+> Please set your commit email (if you are using Git) to your sid email (`git config user.email sxxxxxxx@rmit.edu.vn`)
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
