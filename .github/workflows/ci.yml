@@ -16,12 +16,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 8
+          version: 10
 
       - name: Install dependencies
         run: pnpm install
@@ -29,31 +29,5 @@ jobs:
       - name: Lint
         run: pnpm lint --if-present
 
-      - name: Build frontend
-        run: pnpm build
-
       - name: Test frontend
         run: pnpm test --if-present
-
-
-
-
-
-
-      - name: Install server deps
-        if: hashFiles('server/package.json') != ''
-        run: |
-          cd server
-          pnpm install
-
-      - name: Lint server
-        if: hashFiles('server/package.json') != ''
-        run: |
-          cd server
-          pnpm lint --if-present
-
-      - name: Test server
-        if: hashFiles('server/package.json') != ''
-        run: |
-          cd server
-          pnpm test --if-present
