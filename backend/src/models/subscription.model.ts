@@ -1,6 +1,34 @@
-const mongoose = require('mongoose');
+import mongoose, { Document, Schema } from 'mongoose';
 
-const subscriptionSchema = new mongoose.Schema(
+export interface ISubscriptionFeatures {
+  maxGames: number | null;
+  multiplayerAccess: boolean;
+  premiumSupport: boolean;
+  adFree: boolean;
+  customThemes: boolean;
+  priorityAccess: boolean;
+  cloudSave: boolean;
+}
+
+export interface ISubscription extends Document {
+  name: 'Free' | 'Basic' | 'Premium' | 'Enterprise';
+  description: string;
+  price: number;
+  currency: string;
+  duration: {
+    value: number;
+    unit: 'day' | 'month' | 'year';
+  };
+  features: ISubscriptionFeatures;
+  benefits: string[];
+  isActive: boolean;
+  displayOrder: number;
+  pricePerDay: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const subscriptionSchema = new Schema<ISubscription>(
   {
     name: {
       type: String,
@@ -39,7 +67,7 @@ const subscriptionSchema = new mongoose.Schema(
     features: {
       maxGames: {
         type: Number,
-        default: null, // null means unlimited
+        default: null,
       },
       multiplayerAccess: {
         type: Boolean,
@@ -91,19 +119,19 @@ subscriptionSchema.index({ isActive: 1 });
 subscriptionSchema.index({ displayOrder: 1 });
 
 // Virtual for calculating price per day
-subscriptionSchema.virtual('pricePerDay').get(function () {
-  if (this.price === 0) return 0;
-  
+subscriptionSchema.virtual('pricePerDay').get(function (this: ISubscription) {
+  if (this.price === 0) return '0';
+
   let days = this.duration.value;
   if (this.duration.unit === 'month') {
     days *= 30;
   } else if (this.duration.unit === 'year') {
     days *= 365;
   }
-  
+
   return (this.price / days).toFixed(2);
 });
 
-const Subscription = mongoose.model('Subscription', subscriptionSchema);
+const Subscription = mongoose.model<ISubscription>('Subscription', subscriptionSchema);
 
-module.exports = Subscription;
+export default Subscription;
