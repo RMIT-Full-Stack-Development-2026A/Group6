@@ -1,8 +1,9 @@
-const gameRepository = require('../repositories/game.repository');
+import gameRepository from '../repositories/game.repository';
+import { IGame } from '../models/game.model';
 
 class GameService {
   // Create game with validation
-  async createGame(gameData) {
+  async createGame(gameData: Partial<IGame>): Promise<IGame> {
     try {
       // TODO: Add business logic and validation
       const game = await gameRepository.create(gameData);
@@ -13,7 +14,7 @@ class GameService {
   }
 
   // Get game by ID
-  async getGameById(id) {
+  async getGameById(id: string): Promise<IGame> {
     try {
       // TODO: Add business logic
       const game = await gameRepository.findById(id);
@@ -27,7 +28,7 @@ class GameService {
   }
 
   // Get all games
-  async getAllGames() {
+  async getAllGames(): Promise<IGame[]> {
     try {
       // TODO: Add business logic (filtering, pagination, etc.)
       const games = await gameRepository.findAll();
@@ -38,7 +39,7 @@ class GameService {
   }
 
   // Update game
-  async updateGame(id, gameData) {
+  async updateGame(id: string, gameData: Partial<IGame>): Promise<IGame> {
     try {
       // TODO: Add business logic and validation
       const game = await gameRepository.update(id, gameData);
@@ -52,7 +53,7 @@ class GameService {
   }
 
   // Delete game
-  async deleteGame(id) {
+  async deleteGame(id: string): Promise<IGame> {
     try {
       // TODO: Add business logic (cascading deletes, etc.)
       const game = await gameRepository.delete(id);
@@ -68,4 +69,4 @@ class GameService {
   // TODO: Add custom business logic methods
 }
 
-module.exports = new GameService();
+export default new GameService();
