@@ -23,7 +23,7 @@ class SubscriptionController {
   /* Get subscription plan by ID */
   async getSubscriptionById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const subscription = await subscriptionService.getSubscriptionById(id);
 
       res.status(200).json({
@@ -77,7 +77,7 @@ class SubscriptionController {
   /* Update subscription plan (Admin) */
   async updateSubscription(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const updateData = req.body;
 
       const subscription = await subscriptionService.updateSubscription(id, updateData);
@@ -98,7 +98,7 @@ class SubscriptionController {
   /* Delete subscription plan (Admin) */
   async deleteSubscription(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       await subscriptionService.deleteSubscription(id);
 
       res.status(200).json({
@@ -116,7 +116,7 @@ class SubscriptionController {
   /* Toggle subscription status (Admin) */
   async toggleSubscriptionStatus(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { isActive } = req.body;
 
       if (typeof isActive !== 'boolean') {

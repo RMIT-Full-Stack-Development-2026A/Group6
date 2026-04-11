@@ -29,7 +29,7 @@ class UserController {
    */
   async getUserById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const user = await userService.getUserById(id);
 
       res.status(200).json({
@@ -129,7 +129,7 @@ class UserController {
    */
   async deleteUser(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       await userService.deleteUser(id);
 
       res.status(200).json({
@@ -150,7 +150,7 @@ class UserController {
    */
   async assignSubscription(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { subscriptionId } = req.body;
 
       if (!subscriptionId) {
