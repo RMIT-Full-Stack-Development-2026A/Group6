@@ -1,8 +1,8 @@
-const Game = require('../models/game.model');
+import Game, { IGame } from '../models/game.model';
 
 class GameRepository {
   // Create a new game
-  async create(gameData) {
+  async create(gameData: Partial<IGame>): Promise<IGame> {
     try {
       const game = await Game.create(gameData);
       return game;
@@ -12,7 +12,7 @@ class GameRepository {
   }
 
   // Find game by ID
-  async findById(id) {
+  async findById(id: string): Promise<IGame | null> {
     try {
       const game = await Game.findById(id);
       return game;
@@ -22,7 +22,7 @@ class GameRepository {
   }
 
   // Find all games
-  async findAll() {
+  async findAll(): Promise<IGame[]> {
     try {
       const games = await Game.find();
       return games;
@@ -32,7 +32,7 @@ class GameRepository {
   }
 
   // Update game by ID
-  async update(id, gameData) {
+  async update(id: string, gameData: Partial<IGame>): Promise<IGame | null> {
     try {
       const game = await Game.findByIdAndUpdate(id, gameData, { new: true });
       return game;
@@ -42,7 +42,7 @@ class GameRepository {
   }
 
   // Delete game by ID
-  async delete(id) {
+  async delete(id: string): Promise<IGame | null> {
     try {
       const game = await Game.findByIdAndDelete(id);
       return game;
@@ -54,4 +54,4 @@ class GameRepository {
   // TODO: Add custom queries as per requirements
 }
 
-module.exports = new GameRepository();
+export default new GameRepository();

@@ -1,8 +1,9 @@
-const adminService = require('../services/admin.service');
+import { Request, Response } from 'express';
+import adminService from '../services/admin.service';
 
 class AdminController {
   // Create admin
-  async create(req, res) {
+  async create(req: Request, res: Response): Promise<void> {
     try {
       // TODO: Add input validation (express-validator)
       const adminData = req.body;
@@ -15,13 +16,13 @@ class AdminController {
     } catch (error) {
       res.status(400).json({
         success: false,
-        message: error.message,
+        message: error instanceof Error ? error.message : 'An error occurred',
       });
     }
   }
 
   // Get admin by ID
-  async getById(req, res) {
+  async getById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const admin = await adminService.getAdminById(id);
@@ -32,13 +33,13 @@ class AdminController {
     } catch (error) {
       res.status(404).json({
         success: false,
-        message: error.message,
+        message: error instanceof Error ? error.message : 'An error occurred',
       });
     }
   }
 
   // Get all admins
-  async getAll(req, res) {
+  async getAll(req: Request, res: Response): Promise<void> {
     try {
       // TODO: Add pagination and filtering
       const admins = await adminService.getAllAdmins();
@@ -49,13 +50,13 @@ class AdminController {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: error.message,
+        message: error instanceof Error ? error.message : 'An error occurred',
       });
     }
   }
 
   // Update admin
-  async update(req, res) {
+  async update(req: Request, res: Response): Promise<void> {
     try {
       // TODO: Add input validation
       const { id } = req.params;
@@ -69,13 +70,13 @@ class AdminController {
     } catch (error) {
       res.status(400).json({
         success: false,
-        message: error.message,
+        message: error instanceof Error ? error.message : 'An error occurred',
       });
     }
   }
 
   // Delete admin
-  async delete(req, res) {
+  async delete(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const admin = await adminService.deleteAdmin(id);
@@ -87,7 +88,7 @@ class AdminController {
     } catch (error) {
       res.status(404).json({
         success: false,
-        message: error.message,
+        message: error instanceof Error ? error.message : 'An error occurred',
       });
     }
   }
@@ -95,4 +96,4 @@ class AdminController {
   // TODO: Add custom controller methods
 }
 
-module.exports = new AdminController();
+export default new AdminController();

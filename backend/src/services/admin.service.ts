@@ -1,8 +1,9 @@
-const adminRepository = require('../repositories/admin.repository');
+import adminRepository from '../repositories/admin.repository';
+import { IAdmin } from '../models/admin.model';
 
 class AdminService {
   // Create admin with validation
-  async createAdmin(adminData) {
+  async createAdmin(adminData: Partial<IAdmin>): Promise<IAdmin> {
     try {
       // TODO: Add business logic and validation
       const admin = await adminRepository.create(adminData);
@@ -13,7 +14,7 @@ class AdminService {
   }
 
   // Get admin by ID
-  async getAdminById(id) {
+  async getAdminById(id: string): Promise<IAdmin> {
     try {
       // TODO: Add business logic
       const admin = await adminRepository.findById(id);
@@ -27,7 +28,7 @@ class AdminService {
   }
 
   // Get admin by username
-  async getAdminByUsername(username) {
+  async getAdminByUsername(username: string): Promise<IAdmin> {
     try {
       // TODO: Add business logic
       const admin = await adminRepository.findByUsername(username);
@@ -41,7 +42,7 @@ class AdminService {
   }
 
   // Get all admins
-  async getAllAdmins() {
+  async getAllAdmins(): Promise<IAdmin[]> {
     try {
       // TODO: Add business logic (filtering, pagination, etc.)
       const admins = await adminRepository.findAll();
@@ -52,7 +53,7 @@ class AdminService {
   }
 
   // Update admin
-  async updateAdmin(id, adminData) {
+  async updateAdmin(id: string, adminData: Partial<IAdmin>): Promise<IAdmin> {
     try {
       // TODO: Add business logic and validation
       const admin = await adminRepository.update(id, adminData);
@@ -66,7 +67,7 @@ class AdminService {
   }
 
   // Delete admin
-  async deleteAdmin(id) {
+  async deleteAdmin(id: string): Promise<IAdmin> {
     try {
       // TODO: Add business logic
       const admin = await adminRepository.delete(id);
@@ -82,4 +83,4 @@ class AdminService {
   // TODO: Add custom business logic methods
 }
 
-module.exports = new AdminService();
+export default new AdminService();
