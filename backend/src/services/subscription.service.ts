@@ -1,9 +1,13 @@
-const subscriptionRepository = require('../repositories/subscription.repository');
-const userRepository = require('../repositories/user.repository');
+import subscriptionRepository, {
+  CreateSubscriptionData,
+  UpdateSubscriptionData,
+} from '../repositories/subscription.repository';
+import userRepository from '../repositories/user.repository';
+import { ISubscription } from '../models/subscription.model';
+import { IUser } from '../models/user.model';
 
 class SubscriptionService {
-  /* Get subscription by ID*/
-  async getSubscriptionById(subscriptionId) {
+  async getSubscriptionById(subscriptionId: string): Promise<ISubscription> {
     const subscription = await subscriptionRepository.findById(subscriptionId);
     if (!subscription) {
       throw new Error('Subscription plan not found');
@@ -11,94 +15,92 @@ class SubscriptionService {
     return subscription;
   }
 
-  /* Get all subscriptions */
-  async getAllSubscriptions(activeOnly = false) {
+  async getAllSubscriptions(activeOnly: boolean = false): Promise<ISubscription[]> {
     return await subscriptionRepository.findAll(activeOnly);
   }
 
-  /* Get active subscriptions */
-  async getActiveSubscriptions() {
+  async getActiveSubscriptions(): Promise<ISubscription[]> {
     return await subscriptionRepository.findActive();
   }
 
-  /* Create new subscription plan */
-  async createSubscription(subscriptionData) {
-    // Check if subscription with same name already exists
-    const existingSubscription = await subscriptionRepository.findByName(
-      subscriptionData.name
-    );
+  async createSubscription(subscriptionData: CreateSubscriptionData): Promise<ISubscription> {
+    const existingSubscription = await subscriptionRepository.findByName(subscriptionData.name);
     if (existingSubscription) {
       throw new Error('Subscription plan with this name already exists');
     }
 
-    // Validate price
     if (subscriptionData.price < 0) {
       throw new Error('Price cannot be negative');
     }
 
-    // Validate duration
     if (subscriptionData.duration && subscriptionData.duration.value <= 0) {
       throw new Error('Duration value must be positive');
     }
 
-    const subscription = await subscriptionRepository.create(subscriptionData);
-    return subscription;
+    return await subscriptionRepository.create(subscriptionData);
   }
 
-  /*Update subscription plan*/
-  async updateSubscription(subscriptionId, updateData) {
+  async updateSubscription(
+    subscriptionId: string,
+    updateData: UpdateSubscriptionData
+  ): Promise<ISubscription> {
     const subscription = await subscriptionRepository.findById(subscriptionId);
     if (!subscription) {
       throw new Error('Subscription plan not found');
     }
 
-    // If updating name, check for duplicates
     if (updateData.name && updateData.name !== subscription.name) {
-      const existingSubscription = await subscriptionRepository.findByName(
-        updateData.name
-      );
+      const existingSubscription = await subscriptionRepository.findByName(updateData.name);
       if (existingSubscription) {
         throw new Error('Subscription plan with this name already exists');
       }
     }
 
-    // Validate price if provided
     if (updateData.price !== undefined && updateData.price < 0) {
       throw new Error('Price cannot be negative');
     }
 
-    // Validate duration if provided
     if (updateData.duration && updateData.duration.value <= 0) {
       throw new Error('Duration value must be positive');
     }
 
-    return await subscriptionRepository.update(subscriptionId, updateData);
+    const updated = await subscriptionRepository.update(subscriptionId, updateData);
+    if (!updated) {
+      throw new Error('Subscription plan not found');
+    }
+    return updated;
   }
 
-  /* Delete subscription plan */
-  async deleteSubscription(subscriptionId) {
+  async deleteSubscription(subscriptionId: string): Promise<ISubscription> {
     const subscription = await subscriptionRepository.findById(subscriptionId);
     if (!subscription) {
       throw new Error('Subscription plan not found');
     }
 
-
-    return await subscriptionRepository.delete(subscriptionId);
+    const deleted = await subscriptionRepository.delete(subscriptionId);
+    if (!deleted) {
+      throw new Error('Subscription plan not found');
+    }
+    return deleted;
   }
 
-  /* Toggle subscription active status */
-  async toggleSubscriptionStatus(subscriptionId, isActive) {
+  async toggleSubscriptionStatus(
+    subscriptionId: string,
+    isActive: boolean
+  ): Promise<ISubscription> {
     const subscription = await subscriptionRepository.findById(subscriptionId);
     if (!subscription) {
       throw new Error('Subscription plan not found');
     }
 
-    return await subscriptionRepository.toggleActive(subscriptionId, isActive);
+    const updated = await subscriptionRepository.toggleActive(subscriptionId, isActive);
+    if (!updated) {
+      throw new Error('Subscription plan not found');
+    }
+    return updated;
   }
 
-  /* Subscribe user to a plan*/
-  async subscribeUser(userId, subscriptionId) {
-    // Verify subscription exists and is active
+  async subscribeUser(userId: string, subscriptionId: string): Promise<IUser> {
     const subscription = await subscriptionRepository.findById(subscriptionId);
     if (!subscription) {
       throw new Error('Subscription plan not found');
@@ -108,7 +110,6 @@ class SubscriptionService {
       throw new Error('This subscription plan is not available');
     }
 
-    // Update user's subscription
     const user = await userRepository.updateSubscription(userId, subscriptionId);
     if (!user) {
       throw new Error('User not found');
@@ -117,8 +118,7 @@ class SubscriptionService {
     return user;
   }
 
-  /* Unsubscribe user */
-  async unsubscribeUser(userId) {
+  async unsubscribeUser(userId: string): Promise<IUser> {
     const user = await userRepository.updateSubscription(userId, null);
     if (!user) {
       throw new Error('User not found');
@@ -128,4 +128,4 @@ class SubscriptionService {
   }
 }
 
-module.exports = new SubscriptionService();
+export default new SubscriptionService();

@@ -1,6 +1,23 @@
-const mongoose = require('mongoose');
+import mongoose, { Document, Schema } from 'mongoose';
 
-const userSchema = new mongoose.Schema(
+export interface IUser extends Document {
+  username: string;
+  email: string;
+  password: string;
+  role: 'user' | 'admin';
+  subscription: mongoose.Types.ObjectId | null;
+  profile: {
+    avatar: string;
+    firstName: string;
+    lastName: string;
+  };
+  isActive: boolean;
+  lastLogin: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const userSchema = new Schema<IUser>(
   {
     username: {
       type: String,
@@ -28,7 +45,7 @@ const userSchema = new mongoose.Schema(
       default: 'user',
     },
     subscription: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Subscription',
       default: null,
     },
@@ -71,6 +88,6 @@ userSchema.methods.toJSON = function () {
   return user;
 };
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model<IUser>('User', userSchema);
 
-module.exports = User;
+export default User;
