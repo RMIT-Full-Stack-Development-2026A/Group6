@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
 
-const gameSchema = new mongoose.Schema(
+const adminSchema = new mongoose.Schema(
   {
     // Add fields based on finalized data model UML
-    name: {
+    username: {
       type: String,
       required: true,
+      unique: true,
     },
     // TODO: Add more fields as per UML specification
   },
@@ -14,4 +15,4 @@ const gameSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model('Game', gameSchema);
+module.exports = mongoose.model('Admin', adminSchema);
