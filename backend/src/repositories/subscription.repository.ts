@@ -1,7 +1,7 @@
 import Subscription, { ISubscription } from '../models/subscription.model';
 
 export interface CreateSubscriptionData {
-  name: 'Free' | 'Basic' | 'Premium' | 'Enterprise';
+  name: 'Free' | 'Premium';
   description: string;
   price: number;
   currency?: string;
@@ -16,7 +16,7 @@ export interface CreateSubscriptionData {
 }
 
 export interface UpdateSubscriptionData {
-  name?: 'Free' | 'Basic' | 'Premium' | 'Enterprise';
+  name?: 'Free' | 'Premium';
   description?: string;
   price?: number;
   currency?: string;

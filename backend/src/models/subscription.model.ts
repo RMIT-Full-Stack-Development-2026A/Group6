@@ -11,7 +11,7 @@ export interface ISubscriptionFeatures {
 }
 
 export interface ISubscription extends Document {
-  name: 'Free' | 'Basic' | 'Premium' | 'Enterprise';
+  name: 'Free'  | 'Premium';
   description: string;
   price: number;
   currency: string;
@@ -35,7 +35,7 @@ const subscriptionSchema = new Schema<ISubscription>(
       required: true,
       unique: true,
       trim: true,
-      enum: ['Free', 'Basic', 'Premium', 'Enterprise'],
+      enum: ['Free', 'Premium'],
     },
     description: {
       type: String,
