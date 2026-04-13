@@ -1,4 +1,5 @@
 import PlayBox from "@/components/ui/PlayBox";
+import React from "react";
 
 export default function Home() {
   return (
@@ -6,9 +7,23 @@ export default function Home() {
       <main className="flex min-h-screen w-full justify-between py-32 px-16 bg-white  sm:items-start ">
           <div className={"text-black"}>
               <div className={"text-7xl font-bold w-100"}>Ultimate Tic Tac Toe</div>
-              <div className={"text-xl w-150 py-5"}>Experience the architectural evolution of a classic. Choose
+              <div className={"text-xl w-150 py-5"}>
+                  Experience the architectural evolution of a classic. Choose
                   between Standard, Blitz, or Infinite modes. A curated digital gallery
-                  where strategy meets absolute minimalism.</div>
+                  where strategy meets absolute minimalism.
+              </div>
+              <div className={"flex space-x-4"}>
+                  <a href={"#"}>
+                      <div className="hidden sm:flex sm:items-center space-x-4 text-white bg-[#006948] p-3 px-6 rounded-xl">
+                          Play Now
+                      </div>
+                  </a>
+                  <a href={"#"}>
+                      <div className="hidden sm:flex sm:items-center space-x-4 text-white bg-[#006948] p-3 px-6 rounded-xl">
+                          Sign up
+                      </div>
+                  </a>
+              </div>
           </div>
         <div className={"grid grid-cols-3 gap-4"}>
             <PlayBox char="X" />

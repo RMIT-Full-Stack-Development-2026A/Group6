@@ -17,9 +17,11 @@ export default function NavBar() {
 						<a href="#" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Pricing</a>
 					</div>
 
-                    <div className="hidden sm:flex sm:items-center space-x-4 text-white bg-[#006948] p-3 px-6 rounded-xl">
-                        Sign up
-                    </div>
+                    <a href={"#"}>
+                        <div className="hidden sm:flex sm:items-center space-x-4 text-white bg-[#006948] p-3 px-6 rounded-xl">
+                            Sign up
+                        </div>
+                    </a>
 
 					<div className="sm:hidden">
 						<button aria-label="Open menu" className="p-2 rounded-md text-gray-600 hover:bg-gray-100">☰</button>
