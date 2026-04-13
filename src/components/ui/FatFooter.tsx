@@ -11,9 +11,9 @@ export default function FatFooter() {
                         RMIT Fullstack Group 6
                     </div>
                     <div className={"text-gray-400 flex justify-around gap-5"}>
-                        <div>Cookies Settings</div>
-                        <div>Privacy Notice</div>
-                        <div>Terms of Service</div>
+                        <a href="/cookies" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Cookies Settings</a>
+                        <a href="/privacy" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Privacy Notice</a>
+                        <a href="/tos" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Terms of Service</a>
                     </div>
                 </div>
 
