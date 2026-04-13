@@ -4,7 +4,7 @@ import matchtype from "#/data/gamemode.json"
 import React from "react"
 
 type MatchTypeProps = {
-    type: "online" | "local" | "bot" | string
+    type: "online" | "local" | "bot"
 }
 
 export default function MatchType({ type }: MatchTypeProps) {
