@@ -1,10 +1,14 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import bcryptjs from 'bcryptjs';
 
 export interface IUser extends Document {
+  userID: number;
   username: string;
   email: string;
   password: string;
-  role: 'user' | 'admin';
+  country: string;
+  role: 'player' | 'admin';
+  status: 'active' | 'deactive';
   subscription: mongoose.Types.ObjectId | null;
   profile: {
     avatar: string;
@@ -19,6 +23,12 @@ export interface IUser extends Document {
 
 const userSchema = new Schema<IUser>(
   {
+    userID: {
+      type: Number,
+      required: true,
+      unique: true,
+      index: true,
+    },
     username: {
       type: String,
       required: true,
@@ -37,12 +47,21 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: true,
-      minlength: 6,
+    },
+    country: {
+      type: String,
+      required: true,
+      trim: true,
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      enum: ['player', 'admin'],
+      default: 'player',
+    },
+    status: {
+      type: String,
+      enum: ['active', 'deactive'],
+      default: 'active',
     },
     subscription: {
       type: Schema.Types.ObjectId,
@@ -77,9 +96,14 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-// Index for faster queries
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
+// Hash password before saving
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) {
+    return;
+  }
+  const salt = await bcryptjs.genSalt(10);
+  this.password = await bcryptjs.hash(this.password, salt);
+});
 
 // Method to exclude password from JSON response
 userSchema.methods.toJSON = function () {
@@ -87,6 +111,37 @@ userSchema.methods.toJSON = function () {
   delete user.password;
   return user;
 };
+
+const counterSchema = new Schema(
+  {
+    id: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    seq: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { collection: 'counters' }
+);
+
+const Counter = mongoose.model('Counter', counterSchema);
+
+userSchema.pre('validate', async function () {
+  if (!this.isNew) {
+    return;
+  }
+
+  const counter = await Counter.findOneAndUpdate(
+    { id: 'userID' },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+
+  this.userID = counter.seq;
+});
 
 const User = mongoose.model<IUser>('User', userSchema);
 

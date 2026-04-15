@@ -6,21 +6,26 @@ export interface LoginPayload {
 export interface SignupPayload {
   email: string
   password: string
+  username: string
+  country: string
+}
+
+export interface User {
+  id: string
+  email: string
+  username: string
+  role: string
 }
 
 export interface LoginResponse {
-
-  user: {
-    id: string
-    email: string
-    role: string
-  }
+  user: User
+  token: string
   message?: string
 }
 
 export type SignupResponse = LoginResponse
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || ""
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
   const response = await fetch(`${API_BASE}/api/auth/login`, {
