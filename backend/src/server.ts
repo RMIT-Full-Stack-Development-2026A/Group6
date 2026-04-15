@@ -6,7 +6,10 @@ import dotenv from 'dotenv';
 // Routes
 import userRoutes from './routes/user.routes';
 import subscriptionRoutes from './routes/subscription.routes';
+import authRoutes from './routes/auth.routes';
 
+// Database connection
+import connectDB from './config/db';
 
 dotenv.config();
 
@@ -17,7 +20,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Connect to database
+connectDB();
+
 // API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 
@@ -26,11 +33,15 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date() });
 });
 
-// Database connection
-mongoose
-  .connect(process.env.MONGODB_URI as string)
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+// Database status check
+app.get('/api/db-status', (_req, res) => {
+  const isConnected = mongoose.connection.readyState === 1;
+  res.json({ 
+    database: 'MongoDB', 
+    connected: isConnected, 
+    status: isConnected ? 'Connected' : 'Disconnected' 
+  });
+});
 
 // Start server
 app.listen(PORT, () => {
