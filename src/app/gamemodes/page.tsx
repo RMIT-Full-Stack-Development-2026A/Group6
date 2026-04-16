@@ -1,5 +1,6 @@
 import React from "react";
 import MatchType from "@/components/ui/MatchType";
+import DraftGrid from "@/components/ui/DraftGrid";
 
 export default function Home() {
   return (
@@ -10,6 +11,11 @@ export default function Home() {
               <MatchType type={"online"} />
               <MatchType type={"bot"} />
               <MatchType type={"local"} />
+          </div>
+          <div className={"grid grid-cols-3 gap-4 py-5"}>
+              <DraftGrid size={3} subtitle={"Quick Session"}/>
+              <DraftGrid size={5} subtitle={"Quick Session"}/>
+              <DraftGrid size={10} subtitle={"Quick Session"}/>
           </div>
 
       </main>
