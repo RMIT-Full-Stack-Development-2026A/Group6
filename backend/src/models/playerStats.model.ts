@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, CallbackWithoutResultAndOptionalError } from 'mongoose';
 
 export interface IPlayerStats extends Document {
   user: mongoose.Types.ObjectId;
@@ -147,13 +147,12 @@ playerStatsSchema.index({ winRate: -1 });
 playerStatsSchema.index({ wins: -1 });
 
 // Virtual to calculate win rate
-playerStatsSchema.pre('save', function (next) {
+playerStatsSchema.pre('save', async function () {
   if (this.totalGames > 0) {
     this.winRate = Number(((this.wins / this.totalGames) * 100).toFixed(2));
   } else {
     this.winRate = 0;
   }
-  next();
 });
 
 const PlayerStats = mongoose.model<IPlayerStats>('PlayerStats', playerStatsSchema);

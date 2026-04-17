@@ -11,6 +11,7 @@ export interface IUser extends Document {
     firstName: string;
     lastName: string;
     bio: string;
+    country: string;
   };
   preferences: {
     notifications: boolean;
@@ -73,6 +74,10 @@ const userSchema = new Schema<IUser>(
         type: String,
         default: '',
         maxlength: 500,
+      },
+      country: {
+        type: String,
+        default: '',
       },
     },
     preferences: {

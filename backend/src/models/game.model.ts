@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, CallbackWithoutResultAndOptionalError } from 'mongoose';
 
 export type GameMode = 'local' | 'online' | 'bot';
 export type GameStatus = 'waiting' | 'in-progress' | 'completed' | 'abandoned';
@@ -148,15 +148,12 @@ gameSchema.index({ 'players.playerO': 1 });
 gameSchema.index({ createdAt: -1 });
 
 // Pre-save middleware to initialize board state
-gameSchema.pre('save', function (next) {
-  if (this.isNew && !this.boardState.length) {
-    this.boardState = Array(this.gridSize)
-      .fill(null)
-      .map(() => Array(this.gridSize).fill(null));
-  }
-  next();
-});
 
+gameSchema.pre('save', async function () {
+  if (this.isNew && !this.boardState.length) {
+    this.boardState = Array(this.gridSize).fill(null).map(() => Array(this.gridSize).fill(null));
+  }
+});
 const Game = mongoose.model<IGame>('Game', gameSchema);
 
 export default Game;

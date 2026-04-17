@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, CallbackWithoutResultAndOptionalError } from 'mongoose';
 
 export type InviteStatus = 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled';
 
@@ -83,12 +83,10 @@ gameInviteSchema.index({ status: 1, isPublic: 1 });
 gameInviteSchema.index({ expiresAt: 1 });
 
 // Auto-expire invites
-gameInviteSchema.pre('save', function (next) {
+gameInviteSchema.pre('save', async function () {
   if (this.isNew && !this.expiresAt) {
-    // Default expiration: 15 minutes from creation
     this.expiresAt = new Date(Date.now() + 15 * 60 * 1000);
   }
-  next();
 });
 
 const GameInvite = mongoose.model<IGameInvite>('GameInvite', gameInviteSchema);
