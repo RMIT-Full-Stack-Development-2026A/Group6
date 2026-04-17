@@ -5,13 +5,20 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: 'user' | 'admin';
-  subscription: mongoose.Types.ObjectId | null;
+  currentSubscription: mongoose.Types.ObjectId | null;
   profile: {
     avatar: string;
     firstName: string;
     lastName: string;
+    bio: string;
+  };
+  preferences: {
+    notifications: boolean;
+    soundEffects: boolean;
+    theme: 'light' | 'dark' | 'auto';
   };
   isActive: boolean;
+  isEmailVerified: boolean;
   lastLogin: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -44,9 +51,9 @@ const userSchema = new Schema<IUser>(
       enum: ['user', 'admin'],
       default: 'user',
     },
-    subscription: {
+    currentSubscription: {
       type: Schema.Types.ObjectId,
-      ref: 'Subscription',
+      ref: 'UserSubscription',
       default: null,
     },
     profile: {
@@ -62,10 +69,34 @@ const userSchema = new Schema<IUser>(
         type: String,
         default: '',
       },
+      bio: {
+        type: String,
+        default: '',
+        maxlength: 500,
+      },
+    },
+    preferences: {
+      notifications: {
+        type: Boolean,
+        default: true,
+      },
+      soundEffects: {
+        type: Boolean,
+        default: true,
+      },
+      theme: {
+        type: String,
+        enum: ['light', 'dark', 'auto'],
+        default: 'auto',
+      },
     },
     isActive: {
       type: Boolean,
       default: true,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
     },
     lastLogin: {
       type: Date,
@@ -80,6 +111,8 @@ const userSchema = new Schema<IUser>(
 // Index for faster queries
 userSchema.index({ email: 1 });
 userSchema.index({ username: 1 });
+userSchema.index({ role: 1 });
+userSchema.index({ isActive: 1 });
 
 // Method to exclude password from JSON response
 userSchema.methods.toJSON = function () {
