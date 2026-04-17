@@ -2,6 +2,7 @@
 import matchtype from "#/data/gamemode.json"
 
 import React from "react"
+import { useSelection } from "@/context/selection"
 
 type MatchTypeProps = {
     type: "online" | "local" | "bot"
@@ -12,9 +13,11 @@ export default function MatchType({ type }: MatchTypeProps) {
     const text = matchtype.matchtype[key].desc || ""
     const iconSrc = `/matchType/${key}.svg`
     const title = matchtype.matchtype[key].name || ""
+    const { selection, setSelection } = useSelection()
+    const selected = selection.mode === key
 
     return (
-        <article className="bg-white rounded-lg shadow p-6 max-w-md flex flex-col gap-4">
+        <article className={`bg-white rounded-lg shadow p-6 max-w-md flex flex-col gap-4 ${selected ? 'ring-2 ring-emerald-300' : ''}`}>
             <div className="flex items-start">
                 <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center">
                     <img src={iconSrc} alt={`${key} icon`} className="w-5 h-5" />
@@ -27,7 +30,10 @@ export default function MatchType({ type }: MatchTypeProps) {
             </div>
 
             <div className="flex items-center justify-between">
-                <button className="bg-transparent text-emerald-600 font-bold flex items-center gap-3 p-0 focus:outline-none">
+                <button
+                    onClick={() => setSelection({ ...selection, mode: key })}
+                    className="bg-transparent text-emerald-600 font-bold flex items-center gap-3 p-0 focus:outline-none"
+                >
                     <span>SELECT MODE</span>
                     <span className="text-gray-400 font-semibold">→</span>
                 </button>
