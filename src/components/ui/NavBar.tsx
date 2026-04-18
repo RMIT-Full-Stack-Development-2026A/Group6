@@ -15,6 +15,7 @@ export default function NavBar() {
 						<a href="." className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Home</a>
 						<a href="gamemodes" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Game Modes</a>
 						<a href="subscription" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Pricing</a>
+						<a href="/profile" className="px-3 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
 					</div>
 
                     <a href={"#"}>
