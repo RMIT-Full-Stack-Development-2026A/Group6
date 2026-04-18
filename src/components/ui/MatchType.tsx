@@ -2,6 +2,7 @@
 import matchtype from "#/data/gamemode.json"
 
 import React from "react"
+import Image from "next/image"
 import { useSelection } from "@/context/selection"
 
 type MatchTypeProps = {
@@ -20,7 +21,7 @@ export default function MatchType({ type }: MatchTypeProps) {
         <article className={`bg-white rounded-lg shadow p-6 max-w-md flex flex-col gap-4 ${selected ? 'ring-2 ring-emerald-300' : ''}`}>
             <div className="flex items-start">
                 <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center">
-                    <img src={iconSrc} alt={`${key} icon`} className="w-5 h-5" />
+                    <Image src={iconSrc} alt={`${key} icon`} width={50} height={50}/>
                 </div>
             </div>
 
