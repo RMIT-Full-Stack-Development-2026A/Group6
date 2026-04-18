@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useSelection } from "@/context/selection"
 
 type DraftGridProps = {
@@ -18,24 +18,33 @@ export default function DraftGrid({
   const { selection, setSelection } = useSelection()
   const selected = selection.gridSize === gridSize
 
-  // compact settings: shrink tiles when grid is large
-  let tilePx = 48
-  let gap = 12
-  if (gridSize > 12) {
-    tilePx = 22
-    gap = 6
-  } else if (gridSize > 8) {
-    tilePx = 28
-    gap = 8
-  } else if (gridSize > 5) {
-    tilePx = 36
-    gap = 10
-  }
+  const innerRef = useRef<HTMLDivElement | null>(null)
+  const [containerPx, setContainerPx] = useState<number>(0)
 
-  const gridWidth = gridSize * tilePx + (gridSize - 1) * gap
-  // account for outer paddings: section p-6 (24px) + inner p-4 (16px) on both sides
-  const paddingTotal = 2 * (24 + 16)
-  const containerMax = Math.min(Math.max(gridWidth + paddingTotal, 300), 1200)
+  useEffect(() => {
+    function measure() {
+      const el = innerRef.current
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      setContainerPx(Math.floor(rect.width))
+    }
+
+    measure()
+    window.addEventListener("resize", measure)
+    return () => window.removeEventListener("resize", measure)
+  }, [])
+
+  const paddingRatio = 0.25
+  let tilePx = 40
+  let gapPx = Math.round(paddingRatio * tilePx)
+  let gridWidth = 0
+
+  if (containerPx > 0) {
+    const denom = gridSize + (gridSize + 1) * paddingRatio
+    tilePx = Math.floor(containerPx / denom)
+    gapPx = Math.round(paddingRatio * tilePx)
+    gridWidth = gridSize * tilePx + (gridSize - 1) * gapPx
+  }
 
   const tiles = Array.from({ length: total }).map((_, i) => (
     <div
@@ -44,20 +53,24 @@ export default function DraftGrid({
       className="bg-gray-300 rounded-md shadow-sm"
     />
   ))
-
+  /**
+   * Thank you to Araki Tadao for proposing the idea of using math to calculate boxes size dynamically instead of static size
+   * This should also resize based on viewport
+   * The math base line should be:
+   * (container size / number of tiles need) - (number of tiles needed + 1) * padding [this is including outside padding. If not included then it would be (numbers of tiles - 1)]
+   */
   return (
     <section
-      className={`mx-auto bg-white rounded-xl shadow p-6 ${selected ? 'ring-2 ring-emerald-300' : ''}`}
-      style={{ maxWidth: `${containerMax}px` }}
+      className={`w-full mx-auto bg-white rounded-xl shadow p-6 ${selected ? 'ring-2 ring-emerald-300' : ''}`}
     >
       <div className="rounded-lg bg-white p-4">
-        <div className="rounded-md bg-gray-50 p-4 overflow-hidden flex justify-center">
+        <div ref={innerRef} className="rounded-md bg-gray-50 p-4 overflow-hidden flex justify-center">
           <div
             className="grid"
             style={{
               gridTemplateColumns: `repeat(${gridSize}, ${tilePx}px)`,
-              gap: gap,
-              width: `${gridWidth}px`,
+              gap: `${gapPx}px`,
+              width: containerPx > 0 ? `${gridWidth}px` : 'auto',
             }}
           >
             {tiles}
@@ -71,7 +84,7 @@ export default function DraftGrid({
           <div className="text-gray-600">{subtitle}</div>
           <div className="mt-2">
             <button
-              onClick={() => setSelection({ ...selection, gridSize: size })}
+              onClick={() => setSelection({ ...selection, gridSize })}
               className="bg-transparent text-emerald-600 font-bold flex items-center gap-3 p-0 focus:outline-none"
             >
               <span>SELECT MODE</span>
