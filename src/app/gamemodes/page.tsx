@@ -9,12 +9,12 @@ export default function Home() {
       <main className="min-h-screen w-full justify-between py-32 px-16 bg-white  sm:items-start">
         <SelectionProvider>
           <div className={"text-black text-7xl w-full"}>Select your <span className={"text-[#006948]"}>Enviroment</span></div>
-          <div className={"grid grid-cols-3 gap-4"}>
+          <div className={"grid grid-cols-1 md:grid-cols-3 gap-4"}>
               <MatchType type={"online"} />
               <MatchType type={"bot"} />
               <MatchType type={"local"} />
           </div>
-          <div className={"grid grid-cols-3 gap-4 py-5"}>
+          <div className={"grid grid-cols-1 md:grid-cols-3 gap-4 py-10"}>
               <DraftGrid size={3} subtitle={"Quick Session"}/>
               <DraftGrid size={5} subtitle={"Quick Session"}/>
               <DraftGrid size={10} subtitle={"Quick Session"}/>
