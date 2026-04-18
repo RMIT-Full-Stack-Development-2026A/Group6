@@ -1,8 +1,11 @@
+import PricingBox from './PricingBox'
+
 export default function PricingSection() {
   return (
-    <section>
-      <h2>Pricing</h2>
-      <p>List the pricing tiers or subscription options here.</p>
+    <section className="py-12">
+      <div className="max-w-4xl mx-auto">
+        <PricingBox current="free" />
+      </div>
     </section>
   )
 }
