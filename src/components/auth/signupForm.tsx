@@ -10,6 +10,8 @@ interface SignupFormProps {
 
 export default function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
     const [email, setEmail] = useState("")
+    const [username, setUsername] = useState("")
+    const [country, setCountry] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const [error, setError] = useState<string | null>(null)
@@ -18,8 +20,8 @@ export default function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         setError(null)
-        if (!email || !password) {
-            setError("Email and password are required")
+        if (!email || !username || !country || !password) {
+            setError("Email, username, country, and password are required")
             return
         }
         if (password !== confirmPassword) {
@@ -28,7 +30,7 @@ export default function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
         }
         setLoading(true)
         try {
-            const data = await signup({ email, password })
+            const data = await signup({ email, username, country, password })
             setLoading(false)
             onSuccess?.(data)
             if (redirectTo) window.location.assign(redirectTo)
@@ -45,6 +47,21 @@ export default function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
             <label>
                 Email
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </label>
+            <label>
+                Username
+                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+            </label>
+            <label>
+                Country
+                <select value={country} onChange={(e) => setCountry(e.target.value)}>
+                    <option value="">Select a country</option>
+                    <option value="United States">United States</option>
+                    <option value="Canada">Canada</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Mexico">Vietnam</option>
+                </select>
             </label>
             <label>
                 Password
