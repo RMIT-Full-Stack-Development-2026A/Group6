@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { User, UpdateProfilePayload, updateProfile } from '@/services/userService';
+import { User } from '@/services/userService';
 
 interface GameplayPreferencesSectionProps {
   user: User;
@@ -9,122 +9,74 @@ interface GameplayPreferencesSectionProps {
 }
 
 export default function GameplayPreferencesSection({ user, onUpdate }: GameplayPreferencesSectionProps) {
-  const [preferences, setPreferences] = useState({
-    preferredX: true,
-    preferredO: false,
-  });
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  const handleToggle = (mark: 'X' | 'O') => {
-    if (mark === 'X') {
-      setPreferences({ preferredX: true, preferredO: false });
-    } else {
-      setPreferences({ preferredX: false, preferredO: true });
-    }
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      // In a real implementation, you might want to add a preferredMark field to the user model
-      // For now, we'll just show a success message
-      setSuccessMessage('Preferences saved successfully!');
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save preferences');
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const [preferred, setPreferred] = useState<'X' | 'O'>('X');
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex items-center gap-2 mb-6">
-        <span className="text-[#006948]">🎯</span>
-        <h3 className="text-lg font-semibold text-gray-900">Gameplay Preferences</h3>
+    <div className="bg-white rounded-lg border border-gray-200">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#006948" strokeWidth="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <h3 className="text-sm font-semibold text-gray-900">Gameplay Preferences</h3>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-          {error}
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-          {successMessage}
-        </div>
-      )}
-
-      <div>
-        <p className="text-sm text-gray-600 mb-4">
+      <div className="px-6 py-5">
+        <p className="text-xs text-gray-500 mb-4">
           Select your default signature mark for all matches.
         </p>
 
-        <div className="flex gap-4">
+        <div className="flex gap-3">
+          {/* X Option */}
           <button
-            onClick={() => handleToggle('X')}
-            className={`flex-1 flex flex-col items-center justify-center p-6 border-2 rounded-lg transition-all ${
-              preferences.preferredX
-                ? 'border-[#006948] bg-[#E8F5F1]'
-                : 'border-gray-200 hover:border-gray-300'
+            onClick={() => setPreferred('X')}
+            className={`relative flex-1 flex flex-col items-center justify-center py-6 border-2 rounded-lg transition-all ${
+              preferred === 'X'
+                ? 'border-[#006948] bg-white'
+                : 'border-gray-200 hover:border-gray-300 bg-white'
             }`}
           >
-            <div className={`w-20 h-20 flex items-center justify-center text-4xl font-bold mb-2 ${
-              preferences.preferredX ? 'text-[#006948]' : 'text-gray-400'
-            }`}>
+            {/* Checkmark top-right when selected */}
+            {preferred === 'X' && (
+              <div className="absolute top-2 right-2 w-5 h-5 bg-[#006948] rounded-full flex items-center justify-center">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+            )}
+            <span className={`text-5xl font-bold mb-3 leading-none ${preferred === 'X' ? 'text-[#006948]' : 'text-gray-300'}`}>
               ✕
-            </div>
-            <span className={`text-sm font-medium ${
-              preferences.preferredX ? 'text-[#006948]' : 'text-gray-600'
-            }`}>
+            </span>
+            <span className={`text-xs font-semibold tracking-wide ${preferred === 'X' ? 'text-[#006948]' : 'text-gray-400'}`}>
               PREFERRED X
             </span>
-            {preferences.preferredX && (
-              <div className="mt-2 w-6 h-6 bg-[#006948] rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">✓</span>
-              </div>
-            )}
           </button>
 
+          {/* O Option */}
           <button
-            onClick={() => handleToggle('O')}
-            className={`flex-1 flex flex-col items-center justify-center p-6 border-2 rounded-lg transition-all ${
-              preferences.preferredO
-                ? 'border-[#006948] bg-[#E8F5F1]'
-                : 'border-gray-200 hover:border-gray-300'
+            onClick={() => setPreferred('O')}
+            className={`relative flex-1 flex flex-col items-center justify-center py-6 border-2 rounded-lg transition-all ${
+              preferred === 'O'
+                ? 'border-[#006948] bg-white'
+                : 'border-gray-200 hover:border-gray-300 bg-white'
             }`}
           >
-            <div className={`w-20 h-20 flex items-center justify-center text-4xl font-bold mb-2 ${
-              preferences.preferredO ? 'text-[#006948]' : 'text-gray-400'
-            }`}>
-              ○
-            </div>
-            <span className={`text-sm font-medium ${
-              preferences.preferredO ? 'text-[#006948]' : 'text-gray-600'
-            }`}>
-              SELECT O
-            </span>
-            {preferences.preferredO && (
-              <div className="mt-2 w-6 h-6 bg-[#006948] rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">✓</span>
+            {preferred === 'O' && (
+              <div className="absolute top-2 right-2 w-5 h-5 bg-[#006948] rounded-full flex items-center justify-center">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
               </div>
             )}
+            <span className={`text-5xl font-bold mb-3 leading-none ${preferred === 'O' ? 'text-[#006948]' : 'text-gray-300'}`}>
+              ○
+            </span>
+            <span className={`text-xs font-semibold tracking-wide ${preferred === 'O' ? 'text-[#006948]' : 'text-gray-400'}`}>
+              SELECT O
+            </span>
           </button>
         </div>
-
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="w-full mt-6 px-4 py-2 bg-[#006948] text-white rounded-lg hover:bg-[#005237] transition-colors disabled:opacity-50"
-        >
-          {isSaving ? 'Saving...' : 'Save Changes'}
-        </button>
       </div>
     </div>
   );
