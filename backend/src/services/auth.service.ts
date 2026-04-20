@@ -18,6 +18,7 @@ export interface SignupResponse {
     country: string;
     role: string;
     status: string;
+    subscription: boolean;
   };
   token: string;
   message: string;
@@ -34,6 +35,7 @@ export interface LoginResponse {
     email: string;
     username: string;
     role: string;
+    subscription: boolean;
   };
   token: string;
   message: string;
@@ -65,6 +67,7 @@ class AuthService {
       country: signupData.country,
       role: 'player',
       status: 'active',
+      subscription: false,
     });
 
     await user.save();
@@ -87,6 +90,7 @@ class AuthService {
         email: user.email,
         username: user.username,
         country: user.country,
+        subscription: user.subscription,
         role: user.role,
         status: user.status,
       },
@@ -129,6 +133,7 @@ class AuthService {
         email: user.email,
         username: user.username,
         role: user.role,
+        subscription: user.subscription,
       },
       token,
       message: 'Login successful',

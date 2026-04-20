@@ -9,7 +9,7 @@ export interface IUser extends Document {
   country: string;
   role: 'player' | 'admin';
   status: 'active' | 'deactive';
-  subscription: mongoose.Types.ObjectId | null;
+  subscription: boolean;
   profile: {
     avatar: string;
     firstName: string;
@@ -64,9 +64,8 @@ const userSchema = new Schema<IUser>(
       default: 'active',
     },
     subscription: {
-      type: Schema.Types.ObjectId,
-      ref: 'Subscription',
-      default: null,
+      type: Boolean,
+      default: false,
     },
     profile: {
       avatar: {

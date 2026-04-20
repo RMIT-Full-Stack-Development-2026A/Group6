@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import User, { IUser } from '../models/user.model';
 
 export interface PaginationResult {
@@ -14,6 +13,7 @@ export interface CreateUserData {
   username: string;
   email: string;
   password: string;
+  country: string;
   role?: 'user' | 'admin';
   profile?: {
     avatar?: string;
@@ -26,8 +26,9 @@ export interface UpdateUserData {
   username?: string;
   email?: string;
   password?: string;
+  country?: string;
   role?: 'user' | 'admin';
-  subscription?: mongoose.Types.ObjectId | null;
+  subscription?: boolean;
   profile?: {
     avatar?: string;
     firstName?: string;
@@ -39,7 +40,7 @@ export interface UpdateUserData {
 
 class UserRepository {
   async findById(userId: string): Promise<IUser | null> {
-    return await User.findById(userId).populate('subscription');
+    return await User.findById(userId);
   }
 
   async findByEmail(email: string): Promise<IUser | null> {
@@ -59,7 +60,7 @@ class UserRepository {
     return await User.findByIdAndUpdate(userId, updateData, {
       new: true,
       runValidators: true,
-    }).populate('subscription');
+    });
   }
 
   async delete(userId: string): Promise<IUser | null> {
@@ -69,7 +70,6 @@ class UserRepository {
   async findAll(page: number = 1, limit: number = 10): Promise<PaginationResult> {
     const skip = (page - 1) * limit;
     const users = await User.find()
-      .populate('subscription')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -95,13 +95,13 @@ class UserRepository {
 
   async updateSubscription(
     userId: string,
-    subscriptionId: mongoose.Types.ObjectId | string | null
+    subscriptionValue: boolean
   ): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       userId,
-      { subscription: subscriptionId },
+      { subscription: subscriptionValue },
       { new: true }
-    ).populate('subscription');
+    );
   }
 }
 

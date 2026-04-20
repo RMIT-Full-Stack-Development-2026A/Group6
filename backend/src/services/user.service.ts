@@ -89,8 +89,8 @@ class UserService {
     return await userRepository.findAll(page, limit);
   }
 
-  async assignSubscription(userId: string, subscriptionId: string): Promise<IUser> {
-    const user = await userRepository.updateSubscription(userId, subscriptionId);
+  async assignSubscription(userId: string, isSubscribed: boolean): Promise<IUser> {
+    const user = await userRepository.updateSubscription(userId, isSubscribed);
     if (!user) {
       throw new Error('User not found');
     }
