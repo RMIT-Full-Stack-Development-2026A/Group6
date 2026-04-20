@@ -1,9 +1,10 @@
 "use client"
 
 import React, { useState } from "react"
+import { login, LoginResponse } from "@/services/authService"
 
 interface LoginFormProps {
-	onSuccess?: (data: any) => void
+	onSuccess?: (data: LoginResponse) => void
 	redirectTo?: string
 }
 
@@ -30,22 +31,13 @@ export default function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
 		if (!validate()) return
 		setLoading(true)
 		try {
-			const res = await fetch("/api/auth/login", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email, password }),
-			})
-			const data = await res.json()
-			if (!res.ok) {
-				setError(data?.message || "Login failed")
-				setLoading(false)
-				return
-			}
+			const data = await login({ email, password })
+			localStorage.setItem('authToken', data.token)
 			setLoading(false)
 			onSuccess?.(data)
 			if (redirectTo) window.location.assign(redirectTo)
 		} catch (err) {
-			setError("Network error")
+			setError(err instanceof Error ? err.message : "Login failed")
 			setLoading(false)
 		}
 	}
