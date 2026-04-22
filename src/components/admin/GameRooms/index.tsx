@@ -1,18 +1,10 @@
 import React from "react";
 import GameRoomsHeader from "./GameRoomsHeader";
 import GameRoomsTable from "./GameRoomsTable";
-
-interface Room {
-  id: string;
-  roomNo: string;
-  player1: string;
-  player2: string | null;
-  createdAt: string;
-  status: "In Progress" | "In Lobby";
-}
+import { Room } from "@/services/adminGameRooms.service";
 
 interface GameRoomsProps {
-  rooms?: Room[];
+  rooms: Room[];
   onFilter?: () => void;
   onNewRoom?: () => void;
   onSpectate?: (roomId: string) => void;

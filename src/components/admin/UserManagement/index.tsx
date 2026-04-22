@@ -1,17 +1,10 @@
 import React from "react";
 import UserManagementHeader from "./UserManagementHeader";
 import UserTable from "./UserTable";
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  premiumStatus: "PREMIUM" | "STANDAR";
-  accountStatus: "Active" | "Deactivated";
-}
+import { User } from "@/services/adminUserManagement.service";
 
 interface UserManagementProps {
-  users?: User[];
+  users: User[];
   onRegister?: () => void;
   onDeactivate?: (userId: string) => void;
   onReactivate?: (userId: string) => void;

@@ -1,38 +1,13 @@
 import React from "react";
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  premiumStatus: "PREMIUM" | "STANDAR";
-  accountStatus: "Active" | "Deactivated";
-}
+import { User } from "@/services/adminUserManagement.service";
 
 interface UserTableProps {
-  users?: User[];
+  users: User[];
   onDeactivate?: (userId: string) => void;
   onReactivate?: (userId: string) => void;
 }
 
-// Default sample data
-const defaultUsers: User[] = [
-  {
-    id: "1",
-    username: "Sample User",
-    email: "user@example.com",
-    premiumStatus: "PREMIUM",
-    accountStatus: "Active",
-  },
-  {
-    id: "2",
-    username: "John Doe",
-    email: "john.doe@example.com",
-    premiumStatus: "STANDAR",
-    accountStatus: "Deactivated",
-  },
-];
-
-export default function UserTable({ users = defaultUsers, onDeactivate, onReactivate }: UserTableProps) {
+export default function UserTable({ users, onDeactivate, onReactivate }: UserTableProps) {
   return (
     <div className="bg-white rounded-lg shadow p-8">
       <div className="overflow-x-auto">

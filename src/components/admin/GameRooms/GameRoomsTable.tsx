@@ -1,41 +1,13 @@
 import React from "react";
-
-interface Room {
-  id: string;
-  roomNo: string;
-  player1: string;
-  player2: string | null;
-  createdAt: string;
-  status: "In Progress" | "In Lobby";
-}
+import { Room } from "@/services/adminGameRooms.service";
 
 interface GameRoomsTableProps {
-  rooms?: Room[];
+  rooms: Room[];
   onSpectate?: (roomId: string) => void;
   onClose?: (roomId: string) => void;
 }
 
-// Default sample data
-const defaultRooms: Room[] = [
-  {
-    id: "1",
-    roomNo: "R-001",
-    player1: "Player A",
-    player2: "Player B",
-    createdAt: "2026-04-19 10:30",
-    status: "In Progress",
-  },
-  {
-    id: "2",
-    roomNo: "R-002",
-    player1: "Player C",
-    player2: null,
-    createdAt: "2026-04-19 11:15",
-    status: "In Lobby",
-  },
-];
-
-export default function GameRoomsTable({ rooms = defaultRooms, onSpectate, onClose }: GameRoomsTableProps) {
+export default function GameRoomsTable({ rooms, onSpectate, onClose }: GameRoomsTableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
