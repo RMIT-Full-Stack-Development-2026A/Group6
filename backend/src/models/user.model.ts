@@ -10,6 +10,7 @@ export interface IUser extends Document {
   role: 'player' | 'admin';
   status: 'active' | 'deactive';
   subscription: boolean;
+  subscriptionExpires: Date | null;
   profile: {
     avatar: string;
     firstName: string;
@@ -66,6 +67,10 @@ const userSchema = new Schema<IUser>(
     subscription: {
       type: Boolean,
       default: false,
+    },
+    subscriptionExpires: {
+      type: Date,
+      default: null,
     },
     profile: {
       avatar: {

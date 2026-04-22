@@ -16,6 +16,7 @@ export interface User {
   username: string
   role: string
   subscription: boolean
+  subscriptionExpires: string | null
 }
 
 export interface LoginResponse {

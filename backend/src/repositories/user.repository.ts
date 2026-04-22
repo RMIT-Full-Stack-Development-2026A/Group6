@@ -15,6 +15,8 @@ export interface CreateUserData {
   password: string;
   country: string;
   role?: 'user' | 'admin';
+  subscription?: boolean;
+  subscriptionExpires?: Date | null;
   profile?: {
     avatar?: string;
     firstName?: string;
@@ -29,6 +31,7 @@ export interface UpdateUserData {
   country?: string;
   role?: 'user' | 'admin';
   subscription?: boolean;
+  subscriptionExpires?: Date | null;
   profile?: {
     avatar?: string;
     firstName?: string;

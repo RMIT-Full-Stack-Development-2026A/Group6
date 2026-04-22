@@ -36,7 +36,19 @@ class PaymentService {
       throw new Error('Payment processing failed');
     }
 
-    const updatedUser = await userRepository.update(paymentData.userId, { subscription: true });
+    const user = await userRepository.findById(paymentData.userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const now = new Date();
+    const currentExpiry = user.subscriptionExpires && user.subscriptionExpires > now ? user.subscriptionExpires : now;
+    const newExpiry = new Date(currentExpiry.getTime() + 30 * 24 * 60 * 60 * 1000); //30 days in millisecond
+
+    const updatedUser = await userRepository.update(paymentData.userId, {
+      subscription: true,
+      subscriptionExpires: newExpiry,
+    });
 
     if (!updatedUser) {
       throw new Error('User not found');
@@ -45,6 +57,32 @@ class PaymentService {
     return {
       success: true,
       message: 'Payment successful. Your account has been upgraded to Pro!',
+      user: updatedUser,
+    };
+  }
+
+  async cancelSubscription(userId: string): Promise<ProcessPaymentResponse> {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const updatedUser = await userRepository.update(userId, {
+      subscription: false,
+      subscriptionExpires: null,
+    });
+
+    if (!updatedUser) {
+      throw new Error('Unable to cancel subscription');
+    }
+
+    return {
+      success: true,
+      message: 'Subscription cancelled successfully.',
       user: updatedUser,
     };
   }

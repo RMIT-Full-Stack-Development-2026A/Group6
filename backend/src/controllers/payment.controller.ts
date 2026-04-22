@@ -29,6 +29,19 @@ class PaymentController {
       });
     }
   }
+
+  async cancelSubscription(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const result = await paymentService.cancelSubscription(userId);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: (error as Error).message,
+      });
+    }
+  }
 }
 
 export default new PaymentController();
