@@ -88,8 +88,6 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
               </p>
             </div>
           </div>
-          {/* Red dot indicator (as in wireframe) */}
-          {isOwnProfile && <div className="mt-3 w-2 h-2 rounded-full bg-red-500 ml-4"></div>}
         </div>
       </div>
 
