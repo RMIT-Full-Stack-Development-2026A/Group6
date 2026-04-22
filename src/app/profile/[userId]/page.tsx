@@ -1,14 +1,13 @@
-"use client";
-
 import React from 'react';
 import ProfilePage from '../page';
 
 interface PlayerProfilePageProps {
-  params: {
+  params: Promise<{
     userId: string;
-  };
+  }>;
 }
 
-export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
-  return <ProfilePage userId={params.userId} />;
+export default async function PlayerProfilePage({ params }: PlayerProfilePageProps) {
+  const { userId } = await params;
+  return <ProfilePage userId={userId} />;
 }
