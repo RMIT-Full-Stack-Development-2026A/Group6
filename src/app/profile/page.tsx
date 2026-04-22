@@ -155,18 +155,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="border-t border-gray-200 bg-white mt-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <p className="text-xs text-gray-400">© 2024 TIC TAC TOANG. ARCHITECTURAL GAMING EXCELLENCE.</p>
-          <div className="flex gap-4 text-xs text-gray-400">
-            <a href="#" className="hover:text-gray-600">PRIVACY POLICY</a>
-            <a href="#" className="hover:text-gray-600">TERMS OF SERVICE</a>
-            <a href="#" className="hover:text-gray-600">SUPPORT</a>
-            <a href="#" className="hover:text-gray-600">CAREERS</a>
-          </div>
-        </div>
-      </div>
+     
     </div>
   );
 }
