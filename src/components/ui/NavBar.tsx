@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import Link from "next/link";
 
 export default function NavBar() {
 	return (
@@ -12,10 +13,10 @@ export default function NavBar() {
                     </div>
 
 					<div className="hidden sm:flex sm:items-center space-x-4">
-						<a href="." className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Home</a>
-						<a href="gamemodes" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Game Modes</a>
-						<a href="subscription" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Pricing</a>
-						<a href="/profile" className="px-3 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+						<Link href={"/"} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Home</Link>
+						<Link href={"/gamemodes"} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Game Modes</Link>
+						<Link href={"/subscription"} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Pricing</Link>
+						<Link href={"/profile"} className="px-3 py-2 text-gray-700 hover:bg-gray-100">Profile</Link>
 					</div>
 
                     <a href={"#"}>
