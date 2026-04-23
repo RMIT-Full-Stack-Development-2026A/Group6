@@ -46,8 +46,9 @@ export default function NavBar() {
 
 					<div className="hidden sm:flex sm:items-center space-x-4">
 						<Link href={"/"} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Home</Link>
-						<Link href="gamemodes" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Game Modes</Link>
-						<Link href="subscription" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Pricing</Link>
+						<Link href={"/gamemodes"} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Game Modes</Link>
+						<Link href={"/subscription"} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Pricing</Link>
+						<Link href={"/profile"} className="px-3 py-2 text-gray-700 hover:bg-gray-100">Profile</Link>
 					</div>
 
                     <Link href={"#"}>
