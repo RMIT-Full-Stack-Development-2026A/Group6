@@ -3,11 +3,7 @@ import User, { IUser } from '../models/user.model';
 
 export interface PaginationResult {
   users: IUser[];
-  pagination: {
-    total: number;
-    page: number;
-    pages: number;
-  };
+  pagination: { total: number; page: number; pages: number };
 }
 
 export interface CreateUserData {
@@ -19,6 +15,8 @@ export interface CreateUserData {
     avatar?: string;
     firstName?: string;
     lastName?: string;
+    bio?: string;
+    country?: string;
   };
 }
 
@@ -27,11 +25,13 @@ export interface UpdateUserData {
   email?: string;
   password?: string;
   role?: 'user' | 'admin';
-  subscription?: mongoose.Types.ObjectId | null;
+  currentSubscription?: mongoose.Types.ObjectId | null;
   profile?: {
     avatar?: string;
     firstName?: string;
     lastName?: string;
+    bio?: string;
+    country?: string;
   };
   isActive?: boolean;
   lastLogin?: Date;
@@ -39,7 +39,7 @@ export interface UpdateUserData {
 
 class UserRepository {
   async findById(userId: string): Promise<IUser | null> {
-    return await User.findById(userId).populate('subscription');
+    return await User.findById(userId).populate('currentSubscription');
   }
 
   async findByEmail(email: string): Promise<IUser | null> {
@@ -59,7 +59,7 @@ class UserRepository {
     return await User.findByIdAndUpdate(userId, updateData, {
       new: true,
       runValidators: true,
-    }).populate('subscription');
+    }).populate('currentSubscription');
   }
 
   async delete(userId: string): Promise<IUser | null> {
@@ -69,28 +69,16 @@ class UserRepository {
   async findAll(page: number = 1, limit: number = 10): Promise<PaginationResult> {
     const skip = (page - 1) * limit;
     const users = await User.find()
-      .populate('subscription')
+      .populate('currentSubscription')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
     const total = await User.countDocuments();
-
-    return {
-      users,
-      pagination: {
-        total,
-        page,
-        pages: Math.ceil(total / limit),
-      },
-    };
+    return { users, pagination: { total, page, pages: Math.ceil(total / limit) } };
   }
 
   async updateLastLogin(userId: string): Promise<IUser | null> {
-    return await User.findByIdAndUpdate(
-      userId,
-      { lastLogin: new Date() },
-      { new: true }
-    );
+    return await User.findByIdAndUpdate(userId, { lastLogin: new Date() }, { new: true });
   }
 
   async updateSubscription(
@@ -99,9 +87,9 @@ class UserRepository {
   ): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       userId,
-      { subscription: subscriptionId },
+      { currentSubscription: subscriptionId },
       { new: true }
-    ).populate('subscription');
+    ).populate('currentSubscription');
   }
 }
 
