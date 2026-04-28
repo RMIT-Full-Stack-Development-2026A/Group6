@@ -22,11 +22,12 @@ class UserService {
     const existingUsername = await userRepository.findByUsername(userData.username);
     if (existingUsername) throw new Error('Username already taken');
 
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
-    return await userRepository.create({ ...userData, password: hashedPassword });
+    // Password is hashed by the pre('save') hook in user.model.ts — do NOT hash here
+    return await userRepository.create(userData);
   }
 
   async updateUser(userId: string, updateData: UpdateUserData): Promise<IUser> {
+    // Prevent direct mutation of sensitive fields through profile update
     delete updateData.password;
     delete updateData.role;
     delete updateData.currentSubscription;
@@ -43,6 +44,7 @@ class UserService {
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) throw new Error('Current password is incorrect');
 
+    // Hash manually here because we're using findByIdAndUpdate (bypasses pre('save') hook)
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     const updatedUser = await userRepository.update(userId, { password: hashedPassword });
     if (!updatedUser) throw new Error('User not found');

@@ -4,8 +4,10 @@ import adminService from '../services/admin.service';
 class AdminController {
   async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
-      const users = await adminService.getAllUsers();
-      res.status(200).json({ success: true, data: users });
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const result = await adminService.getAllUsers(page, limit);
+      res.status(200).json({ success: true, data: result.users, pagination: result.pagination });
     } catch (error) {
       res.status(500).json({ success: false, message: (error as Error).message });
     }

@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import bcrypt from 'bcryptjs';
 import Subscription from '../models/subscription.model';
 import User from '../models/user.model';
 import PlayerStats from '../models/playerStats.model';
@@ -29,7 +28,7 @@ const seedDatabase = async (): Promise<void> => {
 
     // ─── 1. Seed Subscription Plans ────────────────────────────────
     console.log(' Seeding subscription plans...');
-    const [freePlan, premiumPlan] = await Subscription.insertMany([
+    const [, premiumPlan] = await Subscription.insertMany([
       {
         name: 'Free',
         description: 'Perfect for casual players who want to enjoy the game',
@@ -83,41 +82,40 @@ const seedDatabase = async (): Promise<void> => {
         displayOrder: 2,
       },
     ]);
-    console.log(`   Created ${2} subscription plans`);
+    console.log('   Created 2 subscription plans');
 
     // ─── 2. Seed Users ──────────────────────────────────────────────
+    // NOTE: passwords are hashed by the pre('save') hook in user.model.ts
     console.log(' Seeding users...');
-    const passwordHash = async (pw: string) => bcrypt.hash(pw, 10);
 
-    // Admin
     const admin = await User.create({
       username: 'admin',
       email: 'admin@tictactoang.com',
-      password: await passwordHash('Admin@123'),
+      password: 'Admin@123',
+      country: 'VN',
       role: 'admin',
       profile: {
         firstName: 'System',
         lastName: 'Admin',
         avatar: '',
         bio: 'TicTacToang Platform Administrator',
-        country: 'VN',
       },
       isActive: true,
       isEmailVerified: true,
     });
 
-    // Player A — Premium
+    // Player A — will be assigned Premium
     const playerA = await User.create({
       username: 'alice_pro',
       email: 'alice@tictactoang.com',
-      password: await passwordHash('Alice@123'),
-      role: 'user',
+      password: 'Alice@123',
+      country: 'VN',
+      role: 'player',
       profile: {
         firstName: 'Alice',
         lastName: 'Nguyen',
         avatar: '',
-        bio: 'Competitive TicTacToe player ',
-        country: 'VN',
+        bio: 'Competitive TicTacToe player',
       },
       isActive: true,
       isEmailVerified: true,
@@ -127,33 +125,33 @@ const seedDatabase = async (): Promise<void> => {
     const playerB = await User.create({
       username: 'bob_standard',
       email: 'bob@tictactoang.com',
-      password: await passwordHash('Bob@1234'),
-      role: 'user',
+      password: 'Bob@1234',
+      country: 'VN',
+      role: 'player',
       profile: {
         firstName: 'Bob',
         lastName: 'Tran',
         avatar: '',
         bio: 'Just here for fun!',
-        country: 'VN',
       },
       isActive: true,
       isEmailVerified: true,
     });
 
-    // Extra deactivated player (for admin demo: req 6.2.1)
+    // Extra deactivated player (for admin demo — req 6.2.1)
     const playerDeactivated = await User.create({
       username: 'charlie_inactive',
       email: 'charlie@tictactoang.com',
-      password: await passwordHash('Charlie@123'),
-      role: 'user',
+      password: 'Charlie@123',
+      country: 'US',
+      role: 'player',
       profile: {
         firstName: 'Charlie',
         lastName: 'Le',
         avatar: '',
         bio: '',
-        country: 'US',
       },
-      isActive: false, // Deactivated account for demo
+      isActive: false,
       isEmailVerified: true,
     });
 
@@ -176,21 +174,17 @@ const seedDatabase = async (): Promise<void> => {
       transactionId: `TXN-ALICE-${Date.now()}`,
     });
 
-    // Link subscription back to user
-    await User.findByIdAndUpdate(playerA._id, {
-      currentSubscription: aliceSub._id,
-    });
+    await User.findByIdAndUpdate(playerA._id, { currentSubscription: aliceSub._id });
     console.log('   Premium subscription active for alice_pro');
 
     // ─── 4. Seed Game Sessions ──────────────────────────────────────
     console.log(' Seeding game sessions...');
 
-    // Helper to build a completed board (simplified — not a real game sequence)
     const emptyBoard = (size: number) =>
       Array(size).fill(null).map(() => Array(size).fill(null));
 
     // Game 1: Alice vs Bob (local, Alice wins)
-    const game1 = await Game.create({
+    await Game.create({
       gameMode: 'local',
       gridSize: 10,
       players: { playerX: playerA._id, playerO: playerB._id },
@@ -199,7 +193,7 @@ const seedDatabase = async (): Promise<void> => {
       status: 'completed',
       winner: playerA._id,
       result: 'X',
-      startedAt: new Date(Date.now() - 3600_000 * 24 * 5), // 5 days ago
+      startedAt: new Date(Date.now() - 3600_000 * 24 * 5),
       completedAt: new Date(Date.now() - 3600_000 * 24 * 5 + 900_000),
       isRanked: false,
       moves: [
@@ -208,24 +202,25 @@ const seedDatabase = async (): Promise<void> => {
       ],
     });
 
-    // Game 2: Bob vs AI bot (bot mode, Bob loses)
-    const game2 = await Game.create({
+    // Game 2: Bob vs AI (bot mode, AI wins)
+    await Game.create({
       gameMode: 'bot',
       gridSize: 10,
-      players: { playerX: playerB._id, playerO: null }, // null = AI
+      players: { playerX: playerB._id, playerO: null },
       currentTurn: 'X',
       boardState: emptyBoard(10),
       status: 'completed',
       winner: 'AI',
-      result: 'O', // AI wins
+      result: 'O',
+      aiDifficulty: 'medium',
       startedAt: new Date(Date.now() - 3600_000 * 24 * 3),
       completedAt: new Date(Date.now() - 3600_000 * 24 * 3 + 600_000),
       isRanked: false,
       moves: [],
     });
 
-    // Game 3: Alice vs Bob (online, draw/abandoned)
-    const game3 = await Game.create({
+    // Game 3: Alice vs Bob (online, abandoned)
+    await Game.create({
       gameMode: 'online',
       gridSize: 10,
       players: { playerX: playerA._id, playerO: playerB._id },
@@ -257,15 +252,14 @@ const seedDatabase = async (): Promise<void> => {
       moves: [],
     });
 
-    console.log(`   Created 4 game sessions`);
+    console.log('   Created 4 game sessions');
 
     // ─── 5. Seed Player Stats ───────────────────────────────────────
     console.log(' Seeding player stats...');
 
     await PlayerStats.create({
       user: admin._id,
-      totalGames: 0,
-      wins: 0, losses: 0, draws: 0, winRate: 0,
+      totalGames: 0, wins: 0, losses: 0, draws: 0, winRate: 0,
       stats: {
         local: { games: 0, wins: 0, losses: 0, draws: 0 },
         online: { games: 0, wins: 0, losses: 0, draws: 0, ranking: 0 },
@@ -277,8 +271,7 @@ const seedDatabase = async (): Promise<void> => {
 
     await PlayerStats.create({
       user: playerA._id,
-      totalGames: 3,
-      wins: 1, losses: 1, draws: 1, winRate: 33.33,
+      totalGames: 3, wins: 1, losses: 1, draws: 1, winRate: 33.33,
       stats: {
         local: { games: 2, wins: 1, losses: 1, draws: 0 },
         online: { games: 1, wins: 0, losses: 0, draws: 1, ranking: 1200 },
@@ -292,8 +285,7 @@ const seedDatabase = async (): Promise<void> => {
 
     await PlayerStats.create({
       user: playerB._id,
-      totalGames: 4,
-      wins: 2, losses: 1, draws: 1, winRate: 50,
+      totalGames: 4, wins: 2, losses: 1, draws: 1, winRate: 50,
       stats: {
         local: { games: 2, wins: 1, losses: 1, draws: 0 },
         online: { games: 1, wins: 0, losses: 0, draws: 1, ranking: 1050 },
@@ -307,8 +299,7 @@ const seedDatabase = async (): Promise<void> => {
 
     await PlayerStats.create({
       user: playerDeactivated._id,
-      totalGames: 0,
-      wins: 0, losses: 0, draws: 0, winRate: 0,
+      totalGames: 0, wins: 0, losses: 0, draws: 0, winRate: 0,
       stats: {
         local: { games: 0, wins: 0, losses: 0, draws: 0 },
         online: { games: 0, wins: 0, losses: 0, draws: 0, ranking: 0 },
@@ -318,14 +309,14 @@ const seedDatabase = async (): Promise<void> => {
       lastPlayed: null,
     });
 
-    console.log('  Created player stats for all users');
+    console.log('   Created player stats for all users');
 
     // ─── Summary ────────────────────────────────────────────────────
     console.log('\n Database seeding completed!');
     console.log('─────────────────────────────────────────');
     console.log(' DEMO ACCOUNTS:');
     console.log('  Admin    → admin@tictactoang.com     / Admin@123');
-    console.log('  Player A → alice@tictactoang.com     / Alice@123  (Premium )');
+    console.log('  Player A → alice@tictactoang.com     / Alice@123  (Premium)');
     console.log('  Player B → bob@tictactoang.com       / Bob@1234   (Free)');
     console.log('  Inactive → charlie@tictactoang.com   / Charlie@123 (Deactivated)');
     console.log('─────────────────────────────────────────');

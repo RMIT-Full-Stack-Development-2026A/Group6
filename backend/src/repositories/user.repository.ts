@@ -10,13 +10,13 @@ export interface CreateUserData {
   username: string;
   email: string;
   password: string;
-  role?: 'user' | 'admin';
+  country: string; 
+  role?: 'player' | 'admin';
   profile?: {
     avatar?: string;
     firstName?: string;
     lastName?: string;
     bio?: string;
-    country?: string;
   };
 }
 
@@ -24,14 +24,14 @@ export interface UpdateUserData {
   username?: string;
   email?: string;
   password?: string;
-  role?: 'user' | 'admin';
+  country?: string; 
+  role?: 'player' | 'admin';
   currentSubscription?: mongoose.Types.ObjectId | null;
   profile?: {
     avatar?: string;
     firstName?: string;
     lastName?: string;
     bio?: string;
-    country?: string;
   };
   isActive?: boolean;
   lastLogin?: Date;

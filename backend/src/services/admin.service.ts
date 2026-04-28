@@ -1,10 +1,9 @@
-import userRepository from '../repositories/user.repository';
+import userRepository, { PaginationResult } from '../repositories/user.repository';
 import { IUser } from '../models/user.model';
 
 class AdminService {
-  async getAllUsers(): Promise<IUser[]> {
-    const result = await userRepository.findAll(1, 1000);
-    return result.users;
+  async getAllUsers(page: number = 1, limit: number = 10): Promise<PaginationResult> {
+    return await userRepository.findAll(page, limit);
   }
 
   async getUserById(id: string): Promise<IUser> {
