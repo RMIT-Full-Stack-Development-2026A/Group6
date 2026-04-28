@@ -24,12 +24,12 @@ export interface IGame extends Document {
   currentTurn: 'X' | 'O';
   boardState: CellValue[][];
   status: GameStatus;
-  winner: mongoose.Types.ObjectId | null;
+  winner: mongoose.Types.ObjectId | 'AI' | null;
   result: 'X' | 'O' | 'draw' | null;
   moves: IMove[];
   startedAt: Date | null;
   completedAt: Date | null;
-  roomCode?: string; // For online matches
+  roomCode?: string;
   isRanked: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -43,14 +43,8 @@ const moveSchema = new Schema<IMove>(
       required: true,
     },
     position: {
-      row: {
-        type: Number,
-        required: true,
-      },
-      col: {
-        type: Number,
-        required: true,
-      },
+      row: { type: Number, required: true },
+      col: { type: Number, required: true },
     },
     symbol: {
       type: String,
@@ -106,29 +100,37 @@ const gameSchema = new Schema<IGame>(
       default: 'waiting',
     },
     winner: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
+      type: Schema.Types.Mixed,
       default: null,
+      validate: {
+        validator: function (v: any) {
+          return (
+            v === null ||
+            v === 'AI' ||
+            mongoose.Types.ObjectId.isValid(v)
+          );
+        },
+        message: 'Winner must be ObjectId, "AI", or null',
+      },
     },
+
     result: {
       type: String,
       enum: ['X', 'O', 'draw', null],
       default: null,
     },
+
     moves: [moveSchema],
-    startedAt: {
-      type: Date,
-      default: null,
-    },
-    completedAt: {
-      type: Date,
-      default: null,
-    },
+
+    startedAt: { type: Date, default: null },
+    completedAt: { type: Date, default: null },
+
     roomCode: {
       type: String,
       unique: true,
-      sparse: true, // Only online games need room codes
+      sparse: true,
     },
+
     isRanked: {
       type: Boolean,
       default: false,
@@ -139,7 +141,7 @@ const gameSchema = new Schema<IGame>(
   }
 );
 
-// Indexes for performance
+// Indexes
 gameSchema.index({ status: 1 });
 gameSchema.index({ gameMode: 1, status: 1 });
 gameSchema.index({ roomCode: 1 });
@@ -147,13 +149,13 @@ gameSchema.index({ 'players.playerX': 1 });
 gameSchema.index({ 'players.playerO': 1 });
 gameSchema.index({ createdAt: -1 });
 
-// Pre-save middleware to initialize board state
-
 gameSchema.pre('save', async function () {
-  if (this.isNew && !this.boardState.length) {
-    this.boardState = Array(this.gridSize).fill(null).map(() => Array(this.gridSize).fill(null));
+  if (this.isNew && (!this.boardState || !this.boardState.length)) {
+    this.boardState = Array(this.gridSize)
+      .fill(null)
+      .map(() => Array(this.gridSize).fill(null));
   }
 });
-const Game = mongoose.model<IGame>('Game', gameSchema);
 
+const Game = mongoose.model<IGame>('Game', gameSchema);
 export default Game;

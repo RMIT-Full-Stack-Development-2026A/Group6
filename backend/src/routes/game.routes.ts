@@ -7,9 +7,9 @@ const router = Router();
 // Game routes
 router.post('/', (req: Request, res: Response) => gameController.create(req, res));
 router.get('/', (req: Request, res: Response) => gameController.getAll(req, res));
-router.get('/:id', (req: Request, res: Response) => gameController.getById(req, res));
-router.put('/:id', (req: Request, res: Response) => gameController.update(req, res));
-router.delete('/:id', (req: Request, res: Response) => gameController.delete(req, res));
+router.get('/:id', gameController.getById);
+router.put('/:id', gameController.update);
+router.delete('/:id', gameController.delete);
 
 // TODO: Add middleware for protected routes
 // TODO: Add route-specific validation

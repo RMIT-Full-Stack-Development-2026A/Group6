@@ -216,7 +216,7 @@ const seedDatabase = async (): Promise<void> => {
       currentTurn: 'X',
       boardState: emptyBoard(10),
       status: 'completed',
-      winner: null,
+      winner: 'AI',
       result: 'O', // AI wins
       startedAt: new Date(Date.now() - 3600_000 * 24 * 3),
       completedAt: new Date(Date.now() - 3600_000 * 24 * 3 + 600_000),
