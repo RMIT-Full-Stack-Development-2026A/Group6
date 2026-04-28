@@ -6,6 +6,11 @@ export interface IUser extends Document {
   password: string;
   role: 'user' | 'admin';
   currentSubscription: mongoose.Types.ObjectId | null;
+    security: {
+    failedLoginAttempts: number;
+    lastFailedAttempt: Date | null;
+    accountLockedUntil: Date | null;
+  };
   profile: {
     avatar: string;
     firstName: string;
@@ -32,6 +37,11 @@ const userSchema = new Schema<IUser>(
     password: { type: String, required: true, minlength: 6 },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     currentSubscription: { type: Schema.Types.ObjectId, ref: 'UserSubscription', default: null },
+    security: {
+      failedLoginAttempts: { type: Number, default: 0, min: 0 },
+      lastFailedAttempt: { type: Date, default: null },
+      accountLockedUntil: { type: Date, default: null },
+    },
     profile: {
       avatar: { type: String, default: '' },
       firstName: { type: String, default: '' },
@@ -59,6 +69,7 @@ userSchema.index({ isActive: 1 });
 userSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;
+  delete user.security; // Security info should not be exposed
   return user;
 };
 

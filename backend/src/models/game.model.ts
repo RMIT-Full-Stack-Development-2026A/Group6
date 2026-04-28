@@ -20,7 +20,14 @@ export interface IGame extends Document {
   players: {
     playerX: mongoose.Types.ObjectId | null;
     playerO: mongoose.Types.ObjectId | null;
+    player2Name?: string; // For local games with non-registered Player 2
   };
+  customization: {
+    boardStyle: 'classic' | 'mint' | 'dark';
+    markerX: string; 
+    markerO: string;
+  };
+  aiDifficulty?: 'easy' | 'medium' | 'hard'; 
   currentTurn: 'X' | 'O';
   boardState: CellValue[][];
   status: GameStatus;
@@ -84,6 +91,30 @@ const gameSchema = new Schema<IGame>(
         ref: 'User',
         default: null,
       },
+      player2Name: {
+        type: String,
+        default: '',
+      },
+    },
+    customization: {
+      boardStyle: {
+        type: String,
+        enum: ['classic', 'mint', 'dark'],
+        default: 'classic',
+      },
+      markerX: {
+        type: String,
+        default: 'X',
+      },
+      markerO: {
+        type: String,
+        default: 'O',
+      },
+    },
+    aiDifficulty: {
+      type: String,
+      enum: ['easy', 'medium', 'hard'],
+      default: null,
     },
     currentTurn: {
       type: String,
