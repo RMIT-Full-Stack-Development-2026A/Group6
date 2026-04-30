@@ -1,14 +1,15 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcryptjs from 'bcryptjs';
 
+import { v4 as uuidv4 } from 'uuid';
+
 export interface IUser extends Document {
-  userID: number;
+  userID: string;
   username: string;
   email: string;
   password: string;
   country: string;
   role: 'player' | 'admin';
-  status: 'active' | 'deactive';
   subscription: mongoose.Types.ObjectId | null;
   profile: {
     avatar: string;
@@ -24,10 +25,11 @@ export interface IUser extends Document {
 const userSchema = new Schema<IUser>(
   {
     userID: {
-      type: Number,
+      type: String,
       required: true,
       unique: true,
       index: true,
+      default: () => uuidv4(),
     },
     username: {
       type: String,
@@ -57,11 +59,6 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: ['player', 'admin'],
       default: 'player',
-    },
-    status: {
-      type: String,
-      enum: ['active', 'deactive'],
-      default: 'active',
     },
     subscription: {
       type: Schema.Types.ObjectId,
@@ -97,7 +94,7 @@ const userSchema = new Schema<IUser>(
 );
 
 // Hash password before saving
-userSchema.pre('save', async function () {
+userSchema.pre<IUser>('save', async function () {
   if (!this.isModified('password')) {
     return;
   }
@@ -111,37 +108,6 @@ userSchema.methods.toJSON = function () {
   delete user.password;
   return user;
 };
-
-const counterSchema = new Schema(
-  {
-    id: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    seq: {
-      type: Number,
-      default: 0,
-    },
-  },
-  { collection: 'counters' }
-);
-
-const Counter = mongoose.model('Counter', counterSchema);
-
-userSchema.pre('validate', async function () {
-  if (!this.isNew) {
-    return;
-  }
-
-  const counter = await Counter.findOneAndUpdate(
-    { id: 'userID' },
-    { $inc: { seq: 1 } },
-    { new: true, upsert: true }
-  );
-
-  this.userID = counter.seq;
-});
 
 const User = mongoose.model<IUser>('User', userSchema);
 

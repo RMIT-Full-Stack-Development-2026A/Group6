@@ -12,12 +12,11 @@ export interface SignupRequest {
 export interface SignupResponse {
   user: {
     id: string;
-    userID: number;
+    userID: string; 
     email: string;
     username: string;
     country: string;
     role: string;
-    status: string;
   };
   token: string;
   message: string;
@@ -63,8 +62,7 @@ class AuthService {
       username: signupData.username,
       password: signupData.password,
       country: signupData.country,
-      role: 'player',
-      status: 'active',
+      role: 'player', 
     });
 
     await user.save();
@@ -88,8 +86,7 @@ class AuthService {
         username: user.username,
         country: user.country,
         role: user.role,
-        status: user.status,
-      },
+      }, 
       token,
       message: 'User registered successfully',
     };

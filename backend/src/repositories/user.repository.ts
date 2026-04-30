@@ -14,7 +14,7 @@ export interface CreateUserData {
   username: string;
   email: string;
   password: string;
-  role?: 'user' | 'admin';
+  role?: 'player'  | 'admin';
   profile?: {
     avatar?: string;
     firstName?: string;
@@ -26,7 +26,7 @@ export interface UpdateUserData {
   username?: string;
   email?: string;
   password?: string;
-  role?: 'user' | 'admin';
+  role?: 'player'  | 'admin';
   subscription?: mongoose.Types.ObjectId | null;
   profile?: {
     avatar?: string;
