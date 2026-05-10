@@ -51,38 +51,38 @@ export default function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="max-w-md w-full mx-auto p-6 bg-white rounded-md shadow-sm">
-			<h2 className="text-lg font-medium mb-4">Sign in</h2>
+		<form onSubmit={handleSubmit} className="max-w-md w-full mx-auto rounded-[1.5rem] border border-slate-200 bg-white p-7 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.15)]">
+			<h2 className="text-2xl font-semibold mb-4 text-slate-900">Sign in</h2>
 
-			{error && <div className="text-sm text-red-600 mb-3">{error}</div>}
+			{error && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 mb-4">{error}</div>}
 
 			<label className="block mb-3">
-				<span className="text-sm">Email</span>
+				<span className="text-sm font-medium text-slate-700">Email</span>
 				<input
 					type="email"
 					value={email}
 					onChange={(e) => setEmail(e.target.value)}
-					className="mt-1 block w-full rounded border px-3 py-2"
+					className="mt-2 block w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100"
 					aria-invalid={!!fieldErrors.email}
 				/>
-				{fieldErrors.email && <div className="text-xs text-red-600 mt-1">{fieldErrors.email}</div>}
+				{fieldErrors.email && <div className="text-xs text-rose-600 mt-2">{fieldErrors.email}</div>}
 			</label>
 
-			<label className="block mb-4">
-				<span className="text-sm">Password</span>
+			<label className="block mb-5">
+				<span className="text-sm font-medium text-slate-700">Password</span>
 				<input
 					type="password"
 					value={password}
 					onChange={(e) => setPassword(e.target.value)}
-					className="mt-1 block w-full rounded border px-3 py-2"
+					className="mt-2 block w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100"
 					aria-invalid={!!fieldErrors.password}
 				/>
-				{fieldErrors.password && <div className="text-xs text-red-600 mt-1">{fieldErrors.password}</div>}
+				{fieldErrors.password && <div className="text-xs text-rose-600 mt-2">{fieldErrors.password}</div>}
 			</label>
 
 			<button
 				type="submit"
-				className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-60"
+				className="w-full rounded-2xl bg-emerald-600 py-3 text-sm font-medium text-white shadow-sm shadow-emerald-500/20 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
 				disabled={loading}
 			>
 				{loading ? "Signing in…" : "Sign in"}
