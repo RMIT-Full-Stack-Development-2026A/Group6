@@ -1,15 +1,12 @@
-import {
-    BoardState,
-    buildBoard,
-    countOpenThrees,
-    evaluateMove,
-    generateHeatmap,
-    getRandomMove,
-    isWinningMove,
-    printHeatmap,
-    toNotation,
-} from "./";
-
+import { BoardState } from "./types";
+import { buildBoard } from "./buildBoard";
+import { countOpenThrees } from "./countOpenThrees";
+import { evaluateMove } from "./evaluateMove";
+import { getRandomMove } from "./getRandomMove";
+import { isWinningMove } from "./isWinningMove";
+import { toNotation } from "./toNotation";
+import { generateHeatmap } from "./generateHeatmap";
+import { printHeatmap } from "./printHeatmap";
 
 export function getBotMove(
     state: BoardState,
