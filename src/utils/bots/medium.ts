@@ -1,11 +1,12 @@
 import { BoardState, Cell, Player } from "./types";
 import { buildBoard } from "./buildBoard";
-import { toNotation, toCoord } from "./toNotation";
+import { toNotation } from "./toNotation";
 import { isWinningMove } from "./isWinningMove";
 import { countOpenThrees } from "./countOpenThrees";
 import { inBounds } from "./inBounds";
 import { directions } from "./directions";
 import { getBotMove as easyGetBotMove } from "./easy";
+import { getRandomMove } from "./getRandomMove";
 
 export function getBotMove(
     state: BoardState,
