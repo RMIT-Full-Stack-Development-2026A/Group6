@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 // Routes
 import userRoutes from './routes/user.routes';
 import subscriptionRoutes from './routes/subscription.routes';
+import gameRoutes from './routes/game.routes';
 
 
 dotenv.config();
@@ -20,6 +21,7 @@ app.use(express.json());
 // API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/games', gameRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
