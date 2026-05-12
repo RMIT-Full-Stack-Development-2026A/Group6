@@ -1,57 +1,49 @@
 import Game, { IGame } from '../models/game.model';
 
 class GameRepository {
-  // Create a new game
   async create(gameData: Partial<IGame>): Promise<IGame> {
-    try {
-      const game = await Game.create(gameData);
-      return game;
-    } catch (error) {
-      throw error;
-    }
+    return await Game.create(gameData);
   }
 
-  // Find game by ID
   async findById(id: string): Promise<IGame | null> {
-    try {
-      const game = await Game.findById(id);
-      return game;
-    } catch (error) {
-      throw error;
-    }
+    return await Game.findById(id)
+      .populate('players.playerX', 'username profile.avatar')
+      .populate('players.playerO', 'username profile.avatar');
   }
 
-  // Find all games
   async findAll(): Promise<IGame[]> {
-    try {
-      const games = await Game.find();
-      return games;
-    } catch (error) {
-      throw error;
-    }
+    return await Game.find()
+      .populate('players.playerX', 'username')
+      .populate('players.playerO', 'username')
+      .sort({ createdAt: -1 });
   }
 
-  // Update game by ID
+  async findByPlayer(userId: string): Promise<IGame[]> {
+    return await Game.find({
+      $or: [{ 'players.playerX': userId }, { 'players.playerO': userId }],
+    })
+      .populate('players.playerX', 'username profile.avatar')
+      .populate('players.playerO', 'username profile.avatar')
+      .sort({ createdAt: -1 });
+  }
+
+  async findByStatus(status: IGame['status']): Promise<IGame[]> {
+    return await Game.find({ status })
+      .populate('players.playerX', 'username')
+      .populate('players.playerO', 'username');
+  }
+
+  async findByRoomCode(roomCode: string): Promise<IGame | null> {
+    return await Game.findOne({ roomCode });
+  }
+
   async update(id: string, gameData: Partial<IGame>): Promise<IGame | null> {
-    try {
-      const game = await Game.findByIdAndUpdate(id, gameData, { new: true });
-      return game;
-    } catch (error) {
-      throw error;
-    }
+    return await Game.findByIdAndUpdate(id, gameData, { new: true });
   }
 
-  // Delete game by ID
   async delete(id: string): Promise<IGame | null> {
-    try {
-      const game = await Game.findByIdAndDelete(id);
-      return game;
-    } catch (error) {
-      throw error;
-    }
+    return await Game.findByIdAndDelete(id);
   }
-
-  // TODO: Add custom queries as per requirements
 }
 
 export default new GameRepository();

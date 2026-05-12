@@ -1,11 +1,15 @@
 import { Request, Response } from 'express';
 import gameService from '../services/game.service';
 
+// reusable type
+type IdParams = {
+  id: string;
+};
+
 class GameController {
   // Create game
   async create(req: Request, res: Response): Promise<void> {
     try {
-      // TODO: Add input validation (express-validator)
       const gameData = req.body;
       const game = await gameService.createGame(gameData);
       res.status(201).json({
@@ -22,7 +26,7 @@ class GameController {
   }
 
   // Get game by ID
-  async getById(req: Request, res: Response): Promise<void> {
+  async getById(req: Request<IdParams>, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const game = await gameService.getGameById(id);
@@ -41,7 +45,6 @@ class GameController {
   // Get all games
   async getAll(req: Request, res: Response): Promise<void> {
     try {
-      // TODO: Add pagination and filtering
       const games = await gameService.getAllGames();
       res.status(200).json({
         success: true,
@@ -56,9 +59,8 @@ class GameController {
   }
 
   // Update game
-  async update(req: Request, res: Response): Promise<void> {
+  async update(req: Request<IdParams>, res: Response): Promise<void> {
     try {
-      // TODO: Add input validation
       const { id } = req.params;
       const gameData = req.body;
       const game = await gameService.updateGame(id, gameData);
@@ -76,7 +78,7 @@ class GameController {
   }
 
   // Delete game
-  async delete(req: Request, res: Response): Promise<void> {
+  async delete(req: Request<IdParams>, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const game = await gameService.deleteGame(id);
@@ -92,8 +94,6 @@ class GameController {
       });
     }
   }
-
-  // TODO: Add custom controller methods
 }
 
 export default new GameController();

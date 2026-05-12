@@ -1,17 +1,15 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import adminController from '../controllers/admin.controller';
-// TODO: Import middleware (auth, validation, etc.)
+import  authenticate  from '../middleware/auth.middleware';
+import requireRole  from '../middleware/role.middleware';
 
 const router = Router();
 
-// Admin routes
-router.post('/', (req: Request, res: Response) => adminController.create(req, res));
-router.get('/', (req: Request, res: Response) => adminController.getAll(req, res));
-router.get('/:id', (req: Request, res: Response) => adminController.getById(req, res));
-router.put('/:id', (req: Request, res: Response) => adminController.update(req, res));
-router.delete('/:id', (req: Request, res: Response) => adminController.delete(req, res));
+router.use(authenticate, requireRole('admin'));
 
-// TODO: Add middleware for protected routes
-// TODO: Add route-specific validation
+router.get('/users', adminController.getAllUsers.bind(adminController));
+router.get('/users/:id', adminController.getUserById.bind(adminController));
+router.patch('/users/:id/deactivate', adminController.deactivateUser.bind(adminController));
+router.patch('/users/:id/reactivate', adminController.reactivateUser.bind(adminController));
 
 export default router;

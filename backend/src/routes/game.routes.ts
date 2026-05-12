@@ -1,17 +1,24 @@
 import { Router, Request, Response } from 'express';
 import gameController from '../controllers/game.controller';
-// TODO: Import middleware (auth, validation, etc.)
+import authMiddleware from '../middleware/auth.middleware';
 
 const router = Router();
 
-// Game routes
-router.post('/', (req: Request, res: Response) => gameController.create(req, res));
-router.get('/', (req: Request, res: Response) => gameController.getAll(req, res));
-router.get('/:id', (req: Request, res: Response) => gameController.getById(req, res));
-router.put('/:id', (req: Request, res: Response) => gameController.update(req, res));
-router.delete('/:id', (req: Request, res: Response) => gameController.delete(req, res));
-
-// TODO: Add middleware for protected routes
-// TODO: Add route-specific validation
+// All game routes require authentication 
+router.post('/', authMiddleware, (req: Request, res: Response) =>
+  gameController.create(req, res)
+);
+router.get('/', authMiddleware, (req: Request, res: Response) =>
+  gameController.getAll(req, res)
+);
+router.get('/:id', authMiddleware, (req: Request, res: Response) =>
+  gameController.getById(req as Request<{ id: string }>, res)
+);
+router.put('/:id', authMiddleware, (req: Request, res: Response) =>
+  gameController.update(req as Request<{ id: string }>, res)
+);
+router.delete('/:id', authMiddleware, (req: Request, res: Response) =>
+  gameController.delete(req as Request<{ id: string }>, res)
+);
 
 export default router;
