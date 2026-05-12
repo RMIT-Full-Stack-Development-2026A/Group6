@@ -94,6 +94,29 @@ class GameController {
       });
     }
   }
+  async submitBotGameMoves(req: Request, res: Response): Promise<void> {
+  try {
+    const { gameId } = req.params;
+    const { playerMoves, botMoves, last_move } = req.body;
+    
+    const game = await gameService.recordBotGameMoves(
+      gameId,
+      playerMoves,
+      botMoves,
+      last_move
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: 'Bot game moves recorded successfully',
+      data: game,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'An error occurred',
+    });
+  }
 }
 
 export default new GameController();
