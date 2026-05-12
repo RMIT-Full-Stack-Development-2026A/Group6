@@ -1,4 +1,4 @@
-import Game, { IGame } from '../models/game.model';
+import Game, { IGame, IMove } from '../models/game.model';
 
 class GameRepository {
   async create(gameData: Partial<IGame>): Promise<IGame> {
@@ -43,6 +43,28 @@ class GameRepository {
 
   async delete(id: string): Promise<IGame | null> {
     return await Game.findByIdAndDelete(id);
+  }
+
+ 
+  async submitBotMoves(
+    id: string,
+    moves: IMove[],
+    status: IGame['status'],
+    result: IGame['result'],
+    winner: IGame['winner'],
+    boardState: IGame['boardState'],
+    completedAt: Date
+  ): Promise<IGame | null> {
+    return await Game.findByIdAndUpdate(
+      id,
+      {
+        $push: { moves: { $each: moves } },
+        $set: { status, result, winner, boardState, completedAt },
+      },
+      { new: true }
+    )
+      .populate('players.playerX', 'username profile.avatar')
+      .populate('players.playerO', 'username profile.avatar');
   }
 }
 

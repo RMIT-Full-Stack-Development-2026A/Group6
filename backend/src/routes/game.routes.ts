@@ -4,7 +4,7 @@ import authMiddleware from '../middleware/auth.middleware';
 
 const router = Router();
 
-// All game routes require authentication 
+// All game routes require authentication
 router.post('/', authMiddleware, (req: Request, res: Response) =>
   gameController.create(req, res)
 );
@@ -19,6 +19,10 @@ router.put('/:id', authMiddleware, (req: Request, res: Response) =>
 );
 router.delete('/:id', authMiddleware, (req: Request, res: Response) =>
   gameController.delete(req as Request<{ id: string }>, res)
+);
+
+router.post('/:gameId/bot-moves', authMiddleware, (req: Request, res: Response) =>
+  gameController.submitBotGameMoves(req as Request<{ gameId: string }>, res)
 );
 
 export default router;

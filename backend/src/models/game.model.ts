@@ -53,6 +53,7 @@ const moveSchema = new Schema<IMove>(
     position: {
       row: { type: Number, required: true },
       col: { type: Number, required: true },
+      algebraic: { type: String, required: true },
     },
     symbol: {
       type: String,
