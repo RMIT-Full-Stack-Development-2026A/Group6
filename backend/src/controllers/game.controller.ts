@@ -5,7 +5,7 @@ type IdParams = { id: string };
 type GameIdParams = { gameId: string };
 
 class GameController {
-  // ── Generic CRUD ────────────────────────────────────────────────────────────
+
 
   async create(req: Request, res: Response): Promise<void> {
     try {
@@ -52,27 +52,9 @@ class GameController {
     }
   }
 
-  // ── Bot-game move submission ─────────────────────────────────────────────────
 
-  /**
-   * POST /api/games/:gameId/bot-moves
-   *
-   * Body:
-   * {
-   *   playerMoves : [{ notation: "c2", row: 7, col: 2 }, ...],
-   *   botMoves    : [{ notation: "d3", row: 6, col: 3 }, ...],
-   *   last_move   : "c2",
-   *   outcome     : "player" | "bot" | "draw" | "abandoned"
-   * }
-   *
-   * `row` and `col` are optional — the service will derive them from `notation`
-   * if they are omitted. Including them avoids re-parsing on the server.
-   *
-   * Algebraic notation follows the chess-king convention used in the SRS:
-   *   - Columns: a, b, c … z, aa, ab … (left → right)
-   *   - Rows   : 1, 2, 3 …             (bottom → top)
-   * So cell (row=9, col=2) on a 10×10 board → "c1" (bottom row).
-   */
+
+
   async submitBotGameMoves(req: Request<GameIdParams>, res: Response): Promise<void> {
     try {
       const { gameId } = req.params;
