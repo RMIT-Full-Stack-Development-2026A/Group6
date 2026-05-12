@@ -60,10 +60,10 @@ export default function PlayfieldSidebar() {
         ) : status === "abandoned" ? (
           <div className="text-gray-500 font-semibold">Aborted</div>
         ) : winner === "draw" ? (
-          <div className="text-yellow-600 font-bold">Draw 🤝</div>
+          <div className="text-yellow-600 font-bold">Draw </div>
         ) : (
           <div className="text-emerald-700 font-bold">
-            {winner === "X" ? player1Name : player2Name} wins 🎉
+            {winner === "X" ? player1Name : player2Name} wins 
           </div>
         )}
 
@@ -106,7 +106,7 @@ export default function PlayfieldSidebar() {
         </div>
       </div>
 
-      {/* Move log */}
+      
       {moves.length > 0 && (
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
           <div className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-2">

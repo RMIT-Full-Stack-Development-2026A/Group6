@@ -16,21 +16,21 @@ export default function GamemodesPage() {
             Select your <span className="text-[#006948]">Environment</span>
           </div>
 
-          {/* Mode cards */}
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <MatchType type="online" />
             <MatchType type="bot" />
             <MatchType type="local" />
           </div>
 
-          {/* Grid size cards */}
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-10">
             <DraftGrid size={10} subtitle="Standard" />
             <DraftGrid size={15} subtitle="Large" />
             <DraftGrid size={20} subtitle="Epic" />
           </div>
 
-          {/* Sticky play bar */}
+          
           <div className="sticky bottom-6 mt-4">
             <SelectedConfig />
           </div>
