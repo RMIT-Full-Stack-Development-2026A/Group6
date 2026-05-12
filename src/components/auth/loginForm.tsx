@@ -1,25 +1,24 @@
 "use client"
 
 import React, { useState } from "react"
+import { login, LoginResponse } from "@/services/authService"
+import { validateLoginForm, LoginFormValues } from "@/utils/validator"
 
 interface LoginFormProps {
-	onSuccess?: (data: any) => void
+	onSuccess?: (data: LoginResponse) => void
 	redirectTo?: string
 }
 
 export default function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
-	const [email, setEmail] = useState("")
+	const [usernameOrEmail, setUsernameOrEmail] = useState("")
 	const [password, setPassword] = useState("")
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
-	const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
+	const [fieldErrors, setFieldErrors] = useState<{ usernameOrEmail?: string; password?: string }>({})
 
 	function validate() {
-		const errs: { email?: string; password?: string } = {}
-		if (!email) errs.email = "Email is required"
-		else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Enter a valid email"
-		if (!password) errs.password = "Password is required"
-		else if (password.length < 6) errs.password = "Password must be at least 6 characters"
+		const values: LoginFormValues = { usernameOrEmail, password }
+		const errs = validateLoginForm(values)
 		setFieldErrors(errs)
 		return Object.keys(errs).length === 0
 	}
@@ -30,22 +29,12 @@ export default function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
 		if (!validate()) return
 		setLoading(true)
 		try {
-			const res = await fetch("/api/auth/login", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email, password }),
-			})
-			const data = await res.json()
-			if (!res.ok) {
-				setError(data?.message || "Login failed")
-				setLoading(false)
-				return
-			}
+			const data = await login({ usernameOrEmail, password })
 			setLoading(false)
 			onSuccess?.(data)
 			if (redirectTo) window.location.assign(redirectTo)
 		} catch (err) {
-			setError("Network error")
+			setError(err instanceof Error ? err.message : "Login failed")
 			setLoading(false)
 		}
 	}
@@ -57,15 +46,15 @@ export default function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
 			{error && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 mb-4">{error}</div>}
 
 			<label className="block mb-3">
-				<span className="text-sm font-medium text-slate-700">Email</span>
+				<span className="text-sm font-medium text-slate-700">Email or Username</span>
 				<input
-					type="email"
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
+					type="text"
+					value={usernameOrEmail}
+					onChange={(e) => setUsernameOrEmail(e.target.value)}
 					className="mt-2 block w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100"
-					aria-invalid={!!fieldErrors.email}
+					aria-invalid={!!fieldErrors.usernameOrEmail}
 				/>
-				{fieldErrors.email && <div className="text-xs text-rose-600 mt-2">{fieldErrors.email}</div>}
+				{fieldErrors.usernameOrEmail && <div className="text-xs text-rose-600 mt-2">{fieldErrors.usernameOrEmail}</div>}
 			</label>
 
 			<label className="block mb-5">

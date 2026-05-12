@@ -27,7 +27,7 @@ export interface SignupResponse {
 }
 
 export interface LoginRequest {
-  email: string;
+  usernameOrEmail: string;
   password: string;
 }
 
@@ -40,6 +40,40 @@ export interface LoginResponse {
   };
   token: string;
   message: string;
+}
+
+const MAX_FAILED_LOGIN_ATTEMPTS = 5;
+const LOGIN_BLOCK_WINDOW_MS = 60 * 1000;
+
+const failedLoginAttempts = new Map<string, { count: number; firstAttempt: number }>();
+
+function resetLoginAttempts(key: string): void {
+  failedLoginAttempts.delete(key);
+}
+
+function recordFailedLoginAttempt(key: string): number {
+  const now = Date.now();
+  const attempt = failedLoginAttempts.get(key);
+
+  if (!attempt || now - attempt.firstAttempt > LOGIN_BLOCK_WINDOW_MS) {
+    failedLoginAttempts.set(key, { count: 1, firstAttempt: now });
+    return 1;
+  }
+
+  attempt.count += 1;
+  failedLoginAttempts.set(key, attempt);
+  return attempt.count;
+}
+
+function isLoginBlocked(key: string): boolean {
+  const attempt = failedLoginAttempts.get(key);
+  return !!attempt && attempt.count >= MAX_FAILED_LOGIN_ATTEMPTS && Date.now() - attempt.firstAttempt <= LOGIN_BLOCK_WINDOW_MS;
+}
+
+const tokenBlacklist = new Set<string>();
+
+export function isTokenBlacklisted(token: string): boolean {
+  return tokenBlacklist.has(token);
 }
 
 function validateSignupData(signupData: SignupRequest): void {
@@ -97,10 +131,14 @@ function validateSignupData(signupData: SignupRequest): void {
 
 
 class AuthService {
+  async logout(token: string): Promise<void> {
+    tokenBlacklist.add(token);
+  }
+
   async signup(signupData: SignupRequest): Promise<SignupResponse> {
     
     validateSignupData(signupData);
-    // Check if email exists
+
     const existingUser = await User.findOne({ email: signupData.email });
     if (existingUser) {
       throw new Error('Email already exists');
@@ -149,23 +187,48 @@ class AuthService {
   }
 
   async login(loginData: LoginRequest): Promise<LoginResponse> {
-    if (!loginData.email || !loginData.password) {
-      throw new Error('Email and password are required');
+    if (!loginData.usernameOrEmail || !loginData.password) {
+      throw new Error('Username or email and password are required');
     }
 
-    // Find user by email
-    const user = await User.findOne({ email: loginData.email });
+    const identifier = loginData.usernameOrEmail.trim();
+    if (!identifier) {
+      throw new Error('Username or email is required');
+    }
+
+    const normalizedIdentifier = identifier.toLowerCase();
+    const user = await User.findOne({
+      $or: [
+        { email: normalizedIdentifier },
+        { username: identifier },
+      ],
+    });
+
+    const loginKey = user ? user._id.toString() : normalizedIdentifier;
+
+    if (isLoginBlocked(loginKey)) {
+      throw new Error('Too many failed login attempts. Please wait 60 seconds before retrying.');
+    }
+
     if (!user) {
+      const failedCount = recordFailedLoginAttempt(loginKey);
+      if (failedCount >= MAX_FAILED_LOGIN_ATTEMPTS) {
+        throw new Error('Too many failed login attempts. Please wait 60 seconds before retrying.');
+      }
       throw new Error('Invalid credentials');
     }
 
-    // Compare passwords
     const isPasswordValid = await bcryptjs.compare(loginData.password, user.password);
     if (!isPasswordValid) {
+      const failedCount = recordFailedLoginAttempt(loginKey);
+      if (failedCount >= MAX_FAILED_LOGIN_ATTEMPTS) {
+        throw new Error('Too many failed login attempts. Please wait 60 seconds before retrying.');
+      }
       throw new Error('Invalid credentials');
     }
 
-    // Generate JWT token
+    resetLoginAttempts(loginKey);
+
     const token = jwt.sign(
       {
         id: user._id.toString(),

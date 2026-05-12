@@ -1,5 +1,5 @@
 export interface LoginPayload {
-  email: string
+  usernameOrEmail: string
   password: string
 }
 
@@ -42,7 +42,18 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     throw new Error(data?.message || "Login failed")
   }
 
+  if (typeof window !== "undefined") {
+    localStorage.setItem("authToken", data.token)
+    localStorage.setItem("user", JSON.stringify(data.user))
+  }
+
   return data
+}
+
+export function logout(): void {
+  if (typeof window === "undefined") return
+  localStorage.removeItem("authToken")
+  localStorage.removeItem("user")
 }
 
 export async function signup(payload: SignupPayload): Promise<SignupResponse> {
@@ -65,5 +76,6 @@ export async function signup(payload: SignupPayload): Promise<SignupResponse> {
 
 export default {
   login,
+  logout,
   signup,
 }

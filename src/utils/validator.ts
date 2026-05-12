@@ -34,7 +34,7 @@ export function validateUsername(username: string): string | null {
 }
 
 export interface LoginFormValues {
-	email: string
+	usernameOrEmail: string
 	password: string
 }
 
@@ -46,11 +46,17 @@ export interface SignupFormValues {
 	confirmPassword: string
 }
 
+export function validateLoginIdentifier(value: string): string | null {
+	if (!value) return "Email or username is required"
+	if (value.includes('@')) return validateEmail(value)
+	return validateUsername(value)
+}
+
 export function validateLoginForm(values: LoginFormValues): FieldErrors<LoginFormValues> {
 	const errs: FieldErrors<LoginFormValues> = {}
-	const e = validateEmail(values.email)
+	const identifierError = validateLoginIdentifier(values.usernameOrEmail)
 	const p = validatePassword(values.password)
-	if (e) errs.email = e
+	if (identifierError) errs.usernameOrEmail = identifierError
 	if (p) errs.password = p
 	return errs
 }
