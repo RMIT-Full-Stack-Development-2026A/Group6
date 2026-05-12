@@ -38,6 +38,7 @@ const userSchema = new Schema<IUser>(
       trim: true,
       minlength: 3,
       maxlength: 30,
+      match: /^[A-Za-z0-9_-]+$/,
     },
     email: {
       type: String,
@@ -45,6 +46,8 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
+      maxlength:254,
+      match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     },
     password: {
       type: String,
