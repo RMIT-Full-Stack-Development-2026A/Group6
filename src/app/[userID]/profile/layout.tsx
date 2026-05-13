@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import NavBar from "@/components/ui/NavBar";
-import FatFooter from "@/components/ui/FatFooter";
+import "../../globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TicTacToang",
-  description: "An online TicTacToe game",
+  title: "User Profile",
+  description: "View your user profile",
 };
 
 export default function RootLayout({
@@ -29,9 +27,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-    <NavBar />
         {children}
-    <FatFooter/>
       </body>
     </html>
   );

@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import NavBar from "@/components/ui/NavBar";
-import FatFooter from "@/components/ui/FatFooter";
+import "../globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TicTacToang",
-  description: "An online TicTacToe game",
+  title: "Privacy Policy",
+  description: "Privacy Policy",
 };
 
 export default function RootLayout({
@@ -25,14 +23,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+      <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-    <NavBar />
-        {children}
-    <FatFooter/>
+      {children}
       </body>
-    </html>
+      </html>
   );
 }
