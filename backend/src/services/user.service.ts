@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import userRepository, { CreateUserData, UpdateUserData, PaginationResult } from '../repositories/user.repository';
 import { IUser } from '../models/user.model';
 
-const AVATAR_UPLOAD_DIR = path.join(__dirname, '../../public/uploads/avatars');
+const AVATAR_UPLOAD_DIR = path.join(__dirname, '../../public/avatars');
 
 function isBase64Image(value: string): boolean {
   return /^data:image\/(jpeg|png|webp|gif);base64,/.test(value);
@@ -24,7 +24,7 @@ async function saveAvatarFromBase64(userId: string, avatarData: string, baseUrl:
   const filepath = path.join(AVATAR_UPLOAD_DIR, filename);
   await fs.writeFile(filepath, buffer);
 
-  return `${baseUrl}/uploads/avatars/${filename}`;
+  return `${baseUrl}/avatars/${filename}`;
 }
 
 class UserService {
