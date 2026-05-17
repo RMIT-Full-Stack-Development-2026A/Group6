@@ -14,7 +14,7 @@ export default function LoginPage() {
             </p>
           </section>
 
-          <LoginForm redirectTo="/" />
+          <LoginForm redirectTo="/home" />
         </div>
       </div>
     </main>

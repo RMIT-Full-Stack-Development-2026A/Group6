@@ -1,3 +1,4 @@
+import Link from "next/link"
 import SignupForm from "@/components/auth/signupForm"
 
 export default function SignupPage() {
@@ -14,7 +15,11 @@ export default function SignupPage() {
             </p>
           </section>
 
-          <SignupForm redirectTo="/" />
+          <SignupForm redirectTo="/home" />
+          <div className="text-center text-sm text-slate-600">
+            <span>Already have an account?</span>
+            <Link href="/login" className="ml-2 font-semibold text-emerald-600 hover:text-emerald-700">Login</Link>
+          </div>
         </div>
       </div>
     </main>
