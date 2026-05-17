@@ -19,6 +19,11 @@ export default function Home() {
                           Play Now
                       </div>
                   </Link>
+                  <Link href={"/subscription"}>
+                      <div className="hidden sm:flex sm:items-center space-x-4 text-[#006948] border border-[#006948] bg-white p-3 px-6 rounded-xl hover:bg-[#ecfdf5]">
+                          Pricing
+                      </div>
+                  </Link>
                   <Link href={"/signup"}>
                       <div className="hidden sm:flex sm:items-center space-x-4 text-white bg-[#006948] p-3 px-6 rounded-xl">
                           Sign up

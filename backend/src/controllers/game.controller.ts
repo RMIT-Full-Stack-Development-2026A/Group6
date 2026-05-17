@@ -24,7 +24,7 @@ class GameController {
   // Get game by ID
   async getById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = String(req.params.id);
       const game = await gameService.getGameById(id);
       res.status(200).json({
         success: true,
@@ -59,7 +59,7 @@ class GameController {
   async update(req: Request, res: Response): Promise<void> {
     try {
       // TODO: Add input validation
-      const { id } = req.params;
+      const id = String(req.params.id);
       const gameData = req.body;
       const game = await gameService.updateGame(id, gameData);
       res.status(200).json({
@@ -78,7 +78,7 @@ class GameController {
   // Delete game
   async delete(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = String(req.params.id);
       const game = await gameService.deleteGame(id);
       res.status(200).json({
         success: true,

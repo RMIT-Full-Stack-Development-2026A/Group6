@@ -53,7 +53,7 @@ export default function PaymentPage() {
     if (!profile) return 'Loading subscription status...'
     if (profile.subscription) {
       return profile.subscriptionExpires
-        ? 'Your monthly subscription is active. Expires on ${formatExpiryDate(profile.subscriptionExpires)}'
+        ? `Your monthly subscription is active. Expires on ${formatExpiryDate(profile.subscriptionExpires)}`
         : 'Your monthly subscription is active.'
     }
     return 'You do not have an active subscription. Pay $10/month to activate.'
@@ -150,9 +150,9 @@ export default function PaymentPage() {
   return (
     <main style={{ width: '100vw', minHeight: '100vh', margin: 0, padding: '30px', backgroundColor: '#f4f5f7', color: '#111' }}>
       <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: 'white', borderRadius: '16px', padding: '28px', boxShadow: '0 10px 30px rgba(0,0,0,0.08)' }}>
-        <h1 style={{ margin: 0, fontSize: '1.75rem' }}>Subscription</h1>
+        <h1 style={{ margin: 0, fontSize: '1.75rem' }}>Payment</h1>
         <p style={{ marginTop: '10px', color: '#555', lineHeight: 1.6 }}>
-          Manage your subscription and renewal date.
+          Manage your payment and billing status for the Pro plan.
         </p>
 
         {error && (

@@ -110,7 +110,7 @@ class SubscriptionService {
       throw new Error('This subscription plan is not available');
     }
 
-    const user = await userRepository.updateSubscription(userId, subscriptionId);
+    const user = await userRepository.updateSubscription(userId, true);
     if (!user) {
       throw new Error('User not found');
     }
@@ -119,7 +119,7 @@ class SubscriptionService {
   }
 
   async unsubscribeUser(userId: string): Promise<IUser> {
-    const user = await userRepository.updateSubscription(userId, null);
+    const user = await userRepository.updateSubscription(userId, false);
     if (!user) {
       throw new Error('User not found');
     }
