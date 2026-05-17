@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Subscription, getSubscription } from '@/services/userService';
 
 interface SubscriptionSectionProps {
@@ -169,9 +170,11 @@ export default function SubscriptionSection({ subscriptionId }: SubscriptionSect
                 </button>
               </>
             ) : (
-              <button className="w-full px-4 py-2 bg-[#006948] text-white rounded-lg hover:bg-[#005237] transition-colors">
-                Upgrade to Premium
-              </button>
+              <Link href="/subscription" className="w-full">
+                <button className="w-full px-4 py-2 bg-[#006948] text-white rounded-lg hover:bg-[#005237] transition-colors">
+                  Upgrade to Premium
+                </button>
+              </Link>
             )}
           </div>
         </div>
@@ -240,9 +243,11 @@ export default function SubscriptionSection({ subscriptionId }: SubscriptionSect
             </div>
           </div>
 
-          <button className="w-full bg-white text-[#006948] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-            Upgrade Now
-          </button>
+          <Link href="/subscription" className="w-full">
+            <button className="w-full bg-white text-[#006948] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+              Upgrade Now
+            </button>
+          </Link>
         </div>
       )}
     </div>
