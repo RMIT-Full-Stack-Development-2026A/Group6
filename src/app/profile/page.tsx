@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { User, Subscription, getProfile, getUserById, getSubscription } from '@/services/userService';
+import { User, Subscription, getProfile, getUserById, getSubscription, updateProfile } from '@/services/userService';
 import ProfileSidebar from '@/components/profile/ProfileSidebar';
 import EditInfoSection from '@/components/profile/EditInfoSection';
 import GameplayPreferencesSection from '@/components/profile/GameplayPreferencesSection';
@@ -44,6 +44,36 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
   };
 
   const handleUserUpdate = (updatedUser: User) => setUser(updatedUser);
+
+  const handleAvatarChange = async (avatarUrl: string) => {
+    if (!user) return;
+
+    setUser((prev) =>
+      prev
+        ? {
+            ...prev,
+            profile: {
+              ...prev.profile,
+              avatar: avatarUrl,
+            },
+          }
+        : prev,
+    );
+
+    try {
+      const updatedUser = await updateProfile({ 
+        username: user.username,
+        profile: { 
+          country: user.profile.country, 
+          avatar: avatarUrl,
+        },
+      });
+
+      setUser(updatedUser);
+    } catch (error) {
+      console.error('Failed to save avatar', error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -101,6 +131,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
               subscription={subscription}
               activeSection={activeSection}
               onSectionChange={setActiveSection}
+              onAvatarChange={handleAvatarChange}
               isOwnProfile={isOwnProfile}
             />
           </div>
