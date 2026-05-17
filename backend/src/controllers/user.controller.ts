@@ -52,8 +52,9 @@ class UserController {
     try {
       const userId = req.user!.id;
       const updateData = req.body;
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
 
-      const user = await userService.updateUser(userId, updateData);
+      const user = await userService.updateUser(userId, updateData, baseUrl);
 
       res.status(200).json({
         success: true,

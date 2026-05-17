@@ -1,0 +1,19 @@
+{
+    "free":{
+        "cost": 0,
+        "benefits":[
+            "Basic 3x3 grid",
+            "Limited bot access",
+            "Standard X and O marks"
+        ]
+    },
+    "Pro":{
+        "cost": 10,
+        "benefits": [
+            "Unlimited grid sizes up to 10x10",
+            "Access to all bot difficulty levels",
+            "Customizable X and O marks",
+            "Ads-free experience"
+        ]
+    }
+}

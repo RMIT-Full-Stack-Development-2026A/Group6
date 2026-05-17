@@ -37,6 +37,6 @@ export const isAdmin = roleMiddleware('admin');
  * Check if user is either user or admin
  * Convenience middleware for authenticated user routes
  */
-export const isUser = roleMiddleware('user', 'admin');
+export const isUser = roleMiddleware('player', 'admin');
 
 export default roleMiddleware;

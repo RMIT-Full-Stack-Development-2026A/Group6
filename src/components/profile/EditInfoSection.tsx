@@ -1,0 +1,119 @@
+"use client";
+
+import React, { useState } from 'react';
+import { User, UpdateProfilePayload, updateProfile } from '@/services/userService';
+
+interface EditInfoSectionProps {
+  user: User;
+  onUpdate: (updatedUser: User) => void;
+}
+
+export default function EditInfoSection({ user, onUpdate }: EditInfoSectionProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    username: user.username,
+    email: user.email,
+    country: user.profile.country,
+  });
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError(null);
+    try {
+      const payload: UpdateProfilePayload = {
+        username: formData.username,
+        profile: { country: formData.country },
+      };
+      const updatedUser = await updateProfile(payload);
+      onUpdate(updatedUser);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDiscard = () => {
+    setFormData({
+      username: user.username,
+      email: user.email,
+      country: user.profile.country,
+    });
+    setError(null);
+  };
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200">
+      {/* Header with left green accent border */}
+      <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#006948" strokeWidth="2">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        <h3 className="text-sm font-semibold text-gray-900">Edit Info</h3>
+      </div>
+
+      <div className="px-6 py-5">
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+              Username
+            </label>
+            <input
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#006948] focus:border-[#006948]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+              Email Address
+            </label>
+            <input
+              type="email"
+              value={formData.email}
+              disabled
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-400 bg-gray-50 cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+              Country
+            </label>
+            <div className="relative">
+              <select
+                value={formData.country}
+                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#006948] focus:border-[#006948] appearance-none pr-8"
+              >
+                <option value="">Select Country</option>
+                <option value="Denmark">Denmark</option>
+                <option value="United States">United States</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Germany">Germany</option>
+                <option value="France">France</option>
+                <option value="Canada">Canada</option>
+                <option value="Australia">Australia</option>
+                <option value="Japan">Japan</option>
+                <option value="Vietnam">Vietnam</option>
+              </select>
+              <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

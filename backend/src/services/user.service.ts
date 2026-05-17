@@ -1,6 +1,31 @@
+import { promises as fs } from 'fs';
+import path from 'path';
 import bcrypt from 'bcryptjs';
 import userRepository, { CreateUserData, UpdateUserData, PaginationResult } from '../repositories/user.repository';
 import { IUser } from '../models/user.model';
+
+const AVATAR_UPLOAD_DIR = path.join(__dirname, '../../public/avatars');
+
+function isBase64Image(value: string): boolean {
+  return /^data:image\/(jpeg|png|webp|gif);base64,/.test(value);
+}
+
+async function saveAvatarFromBase64(userId: string, avatarData: string, baseUrl: string): Promise<string> {
+  const match = avatarData.match(/^data:image\/(jpeg|png|webp|gif);base64,(.+)$/);
+  if (!match) {
+    throw new Error('Invalid avatar data format');
+  }
+
+  const extension = match[1] === 'jpeg' ? 'jpg' : match[1];
+  const buffer = Buffer.from(match[2], 'base64');
+  await fs.mkdir(AVATAR_UPLOAD_DIR, { recursive: true });
+
+  const filename = `${userId}-${Date.now()}.${extension}`;
+  const filepath = path.join(AVATAR_UPLOAD_DIR, filename);
+  await fs.writeFile(filepath, buffer);
+
+  return `${baseUrl}/avatars/${filename}`;
+}
 
 class UserService {
   async getUserById(userId: string): Promise<IUser> {
@@ -40,11 +65,22 @@ class UserService {
     return user;
   }
 
-  async updateUser(userId: string, updateData: UpdateUserData): Promise<IUser> {
+  async updateUser(userId: string, updateData: UpdateUserData, baseUrl: string): Promise<IUser> {
     // Remove sensitive fields that shouldn't be updated directly
     delete updateData.password;
     delete updateData.role;
     delete updateData.subscription;
+
+    if (updateData.profile?.avatar && isBase64Image(updateData.profile.avatar)) {
+      const avatarUrl = await saveAvatarFromBase64(userId, updateData.profile.avatar, baseUrl);
+      updateData = {
+        ...updateData,
+        profile: {
+          ...updateData.profile,
+          avatar: avatarUrl,
+        },
+      };
+    }
 
     const user = await userRepository.update(userId, updateData);
     if (!user) {

@@ -1,0 +1,16 @@
+{
+  "matchtype": {
+    "local": {
+      "desc": "The classic shared experience. Perfect for boardroom challenges or living room sessions.",
+      "name": "Local 2-Player"
+    },
+    "online": {
+      "desc": "Connect with architects globally. Real-time drafting, competitive ladder, and seasonal championships.",
+      "name": "Online Match"
+    },
+    "bot": {
+      "desc": "Sharpen your skill against advanced neural networks trained on historical blueprints",
+      "name": "vs AI"
+    }
+  }
+}

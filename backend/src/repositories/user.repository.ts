@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User, { IUser } from '../models/user.model';
 
 export interface PaginationResult {
@@ -14,7 +15,7 @@ export interface CreateUserData {
   email: string;
   password: string;
   country: string;
-  role?: 'user' | 'admin';
+  role?: 'player' | 'admin';
   subscription?: boolean;
   subscriptionExpires?: Date | null;
   profile?: {
@@ -29,7 +30,7 @@ export interface UpdateUserData {
   email?: string;
   password?: string;
   country?: string;
-  role?: 'user' | 'admin';
+  role?: 'player' | 'admin';
   subscription?: boolean;
   subscriptionExpires?: Date | null;
   profile?: {
