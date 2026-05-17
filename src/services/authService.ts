@@ -52,8 +52,20 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
   return data
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> { 
   if (typeof window === "undefined") return
+
+  const token = localStorage.getItem("authToken")
+  if (token) { 
+    await fetch(`${API_BASE}/api/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }) 
+  }
+
   localStorage.removeItem("authToken")
   localStorage.removeItem("user")
 }

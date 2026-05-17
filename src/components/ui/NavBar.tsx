@@ -48,8 +48,8 @@ export default function NavBar() {
 	const pricingHref = isSignedIn ? "/subscription" : "/signup"
 	const hideSignupButton = pathname === "/home" || pathname === "/profile" || pathname?.startsWith("/profile/") || isSignedIn
 
-	function handleLogout() {
-		logout()
+	async function handleLogout() {
+		await logout()
 		setIsSignedIn(false)
 		router.push("/")
 	}
