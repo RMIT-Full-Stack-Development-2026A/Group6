@@ -43,8 +43,9 @@ export default function NavBar() {
 		)
 	}
 
-	const homeHref = "/home"
+	const homeHref = isSignedIn ? "/home" : "/"
 	const profileHref = isSignedIn ? "/profile" : "/signup"
+	const pricingHref = isSignedIn ? "/subscription" : "/signup"
 	const hideSignupButton = pathname === "/home" || pathname === "/profile" || pathname?.startsWith("/profile/") || isSignedIn
 
 	function handleLogout() {
@@ -64,7 +65,7 @@ export default function NavBar() {
 					<div className="hidden sm:flex sm:items-center space-x-4">
 						<Link href={homeHref} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Home</Link>
 						<Link href={"/gamemodes"} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Game Modes</Link>
-						<Link href={"/subscription"} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Pricing</Link>
+				<Link href={pricingHref} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Pricing</Link>
 						<Link href={profileHref} className="px-3 py-2 text-gray-700 hover:bg-gray-100">Profile</Link>
 						{isSignedIn && (
 							<button onClick={handleLogout} className="px-3 py-2 rounded-md text-sm font-medium text-white bg-[#006948] hover:bg-[#005237]">
