@@ -51,7 +51,7 @@ export default function NavBar() {
 						<Link href={"/profile"} className="px-3 py-2 text-gray-700 hover:bg-gray-100">Profile</Link>
 					</div>
 
-                    <Link href={"#"}>
+                    <Link href={'/signup'}>
                         <div className="hidden sm:flex sm:items-center space-x-4 text-white bg-[#006948] p-3 px-6 rounded-xl">
                             Sign up
                         </div>
