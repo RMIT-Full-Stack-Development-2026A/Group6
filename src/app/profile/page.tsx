@@ -150,26 +150,6 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
 
                     {/* Account Security below, full width */}
                     <SecuritySection />
-
-                    {/* Discard / Save buttons */}
-                    <div className="flex items-center justify-end gap-3 pt-2">
-                      <button
-                        onClick={() => window.location.reload()}
-                        className="px-5 py-2.5 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                      >
-                        Discard Changes
-                      </button>
-                      <button
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#006948] text-white text-sm rounded-lg hover:bg-[#005237] transition-colors"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                          <polyline points="17 21 17 13 7 13 7 21"/>
-                          <polyline points="7 3 7 8 15 8"/>
-                        </svg>
-                        Save Changes
-                      </button>
-                    </div>
                   </>
                 )}
 
