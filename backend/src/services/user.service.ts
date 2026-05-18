@@ -45,6 +45,8 @@ class UserService {
   }
 
   async createUser(userData: CreateUserData): Promise<IUser> {
+    // Validate uniqueness before creating a new user, using repository methods
+    // so all database lookup logic remains centralized in the repository layer.
     const existingUser = await userRepository.findByEmail(userData.email);
     if (existingUser) {
       throw new Error('Email already registered');
@@ -66,7 +68,8 @@ class UserService {
   }
 
   async updateUser(userId: string, updateData: UpdateUserData, baseUrl: string): Promise<IUser> {
-    // Remove sensitive fields that shouldn't be updated directly
+    // Remove sensitive fields that shouldn't be updated directly from the profile.
+    // Password updates should go through a dedicated password flow.
     delete updateData.password;
     delete updateData.role;
     delete updateData.subscription;

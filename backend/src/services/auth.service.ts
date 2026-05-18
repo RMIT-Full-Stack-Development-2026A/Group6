@@ -1,6 +1,6 @@
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User from '../models/user.model';
+import userRepository from '../repositories/user.repository';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const usernameRegex = /^[A-Za-z0-9_-]+$/
@@ -144,19 +144,19 @@ class AuthService {
     
     validateSignupData(signupData);
 
-    const existingUser = await User.findOne({ email: signupData.email });
+    // Use the User repository to check if this email already exists.
+    // This centralizes user queries and avoids direct model access from the auth service.
+    const existingUser = await userRepository.findByEmail(signupData.email);
     if (existingUser) {
       throw new Error('Email already exists');
     }
 
-    // Check if username exists
-    const existingUsername = await User.findOne({ username: signupData.username });
+    const existingUsername = await userRepository.findByUsername(signupData.username);
     if (existingUsername) {
       throw new Error('Username already exists');
     }
 
-    // Save user to MongoDB
-    const user = new User({
+    const user = await userRepository.create({
       email: signupData.email,
       username: signupData.username,
       password: signupData.password,
@@ -166,8 +166,6 @@ class AuthService {
       subscription: false,
       subscriptionExpires: null,
     });
-
-    await user.save();
 
     // Generate JWT token
     const token = jwt.sign(
@@ -208,12 +206,10 @@ class AuthService {
     }
 
     const normalizedIdentifier = identifier.toLowerCase();
-    const user = await User.findOne({
-      $or: [
-        { email: normalizedIdentifier },
-        { username: identifier },
-      ],
-    });
+    let user = await userRepository.findByEmail(normalizedIdentifier);
+    if (!user) {
+      user = await userRepository.findByUsername(identifier);
+    }
 
     const loginKey = user ? user._id.toString() : normalizedIdentifier;
 

@@ -25,8 +25,7 @@ class PaymentService {
       throw new Error('Invalid payment method');
     }
 
-    // Simulate payment processing
-    // In production, integrate with Stripe, PayPal, etc.
+    // Simulate payment processing. In production, integrate with Stripe, PayPal, or another gateway.
     const paymentSuccessful = await this.simulatePaymentProcessing(
       paymentData.paymentMethod,
       paymentData.amount
@@ -36,6 +35,7 @@ class PaymentService {
       throw new Error('Payment processing failed');
     }
 
+    // Load the user via the repository before applying subscription updates.
     const user = await userRepository.findById(paymentData.userId);
     if (!user) {
       throw new Error('User not found');

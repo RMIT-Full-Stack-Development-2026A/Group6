@@ -1,8 +1,10 @@
+// Payload sent to the backend when a user attempts to log in.
 export interface LoginPayload {
   usernameOrEmail: string
   password: string
 }
 
+// Payload sent to the backend when creating a new user account.
 export interface SignupPayload {
   email: string
   password: string
@@ -10,6 +12,7 @@ export interface SignupPayload {
   country: string
 }
 
+// User data returned by the backend after successful authentication.
 export interface User {
   id: string
   email: string
@@ -27,9 +30,11 @@ export interface LoginResponse {
 
 export type SignupResponse = LoginResponse
 
+// Base backend URL used for auth-related API calls. Falls back to localhost for local development.
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
+  // Send login request to backend and parse the JSON response.
   const response = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
     headers: {
@@ -44,6 +49,7 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     throw new Error(data?.message || "Login failed")
   }
 
+  // Persist token and user info in browser storage for session handling.
   if (typeof window !== "undefined") {
     localStorage.setItem("authToken", data.token)
     localStorage.setItem("user", JSON.stringify(data.user))
@@ -55,6 +61,7 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
 export async function logout(): Promise<void> { 
   if (typeof window === "undefined") return
 
+  // Notify backend to invalidate the current token, then clear local session storage.
   const token = localStorage.getItem("authToken")
   if (token) { 
     await fetch(`${API_BASE}/api/auth/logout`, {
@@ -71,6 +78,7 @@ export async function logout(): Promise<void> {
 }
 
 export async function signup(payload: SignupPayload): Promise<SignupResponse> {
+  // Register a new user and return the created user/session token.
   const response = await fetch(`${API_BASE}/api/auth/signup`, {
     method: "POST",
     headers: {

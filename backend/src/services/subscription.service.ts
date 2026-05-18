@@ -101,6 +101,7 @@ class SubscriptionService {
   }
 
   async subscribeUser(userId: string, subscriptionId: string): Promise<IUser> {
+    // Ensure the chosen subscription exists and is active before updating the user.
     const subscription = await subscriptionRepository.findById(subscriptionId);
     if (!subscription) {
       throw new Error('Subscription plan not found');
@@ -110,6 +111,7 @@ class SubscriptionService {
       throw new Error('This subscription plan is not available');
     }
 
+    // Update the user's subscription status through the repository layer.
     const user = await userRepository.updateSubscription(userId, true);
     if (!user) {
       throw new Error('User not found');

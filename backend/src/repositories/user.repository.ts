@@ -16,6 +16,7 @@ export interface CreateUserData {
   password: string;
   country: string;
   role?: 'player' | 'admin';
+  status?: 'active' | 'deactive';
   subscription?: boolean;
   subscriptionExpires?: Date | null;
   profile?: {
@@ -43,10 +44,12 @@ export interface UpdateUserData {
 }
 
 class UserRepository {
+  // Retrieve a user by its MongoDB `_id`.
   async findById(userId: string): Promise<IUser | null> {
     return await User.findById(userId);
   }
 
+  // Retrieve a user using a normalized email address.
   async findByEmail(email: string): Promise<IUser | null> {
     return await User.findOne({ email });
   }
@@ -55,11 +58,17 @@ class UserRepository {
     return await User.findOne({ username });
   }
 
+  // Create a new user document. The model handles password hashing
+  // and default fields such as `userID` and timestamps.
   async create(userData: CreateUserData): Promise<IUser> {
-    const user = new User(userData);
+    const user = new User({
+      ...userData,
+      status: userData.status ?? 'active', 
+    });
     return await user.save();
   }
 
+  // Update user fields using a safe MongoDB update operation.
   async update(userId: string, updateData: UpdateUserData): Promise<IUser | null> {
     return await User.findByIdAndUpdate(userId, updateData, {
       new: true,
@@ -89,6 +98,7 @@ class UserRepository {
     };
   }
 
+  // Update the user's `lastLogin` timestamp after successful authentication.
   async updateLastLogin(userId: string): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       userId,
@@ -97,6 +107,7 @@ class UserRepository {
     );
   }
 
+  // Toggle subscription state on the user document.
   async updateSubscription(
     userId: string,
     subscriptionValue: boolean
