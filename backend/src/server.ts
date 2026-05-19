@@ -9,6 +9,7 @@ import userRoutes from './routes/user.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import authRoutes from './routes/auth.routes';
 import paymentRoutes from './routes/payment.routes';
+import botsRoutes from './routes/bots.routes';
 
 // Database connection
 import connectDB from './config/db';
@@ -32,6 +33,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/bots', botsRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
