@@ -52,8 +52,9 @@ class UserController {
     try {
       const userId = req.user!.id;
       const updateData = req.body;
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
 
-      const user = await userService.updateUser(userId, updateData);
+      const user = await userService.updateUser(userId, updateData, baseUrl);
 
       res.status(200).json({
         success: true,
@@ -151,17 +152,17 @@ class UserController {
   async assignSubscription(req: Request, res: Response): Promise<void> {
     try {
       const id = req.params.id as string;
-      const { subscriptionId } = req.body;
+      const { subscription } = req.body;
 
-      if (!subscriptionId) {
+      if (typeof subscription !== 'boolean') {
         res.status(400).json({
           success: false,
-          message: 'Subscription ID is required',
+          message: 'Subscription value must be true or false',
         });
         return;
       }
 
-      const user = await userService.assignSubscription(id, subscriptionId);
+      const user = await userService.assignSubscription(id, subscription);
 
       res.status(200).json({
         success: true,

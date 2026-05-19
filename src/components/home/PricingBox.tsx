@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import React from "react"
 import subs from "#/data/subs.json"
 
@@ -45,9 +46,9 @@ export default function PricingBox({ current = "free" }: { current?: string }) {
               {isCurrent ? (
                 <button className="w-full py-3 border border-emerald-600 text-emerald-700 rounded">Current Plan</button>
               ) : (
-                <button className={`w-full py-3 rounded ${recommended ? 'bg-emerald-700 text-white' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
+                <Link href="/payment" className={`w-full inline-flex justify-center py-3 rounded ${recommended ? 'bg-emerald-700 text-white' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
                   {recommended ? `Upgrade to ${key}` : `Choose ${key}`}
-                </button>
+                </Link>
               )}
             </div>
           </div>

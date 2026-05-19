@@ -1,6 +1,6 @@
-import PlayBox from "@/components/ui/PlayBox";
-import Link from "next/link";
-import React from "react";
+import PlayBox from "@/components/ui/PlayBox"
+import Link from "next/link"
+import React from "react"
 
 export default function Home() {
   return (
@@ -14,19 +14,9 @@ export default function Home() {
                   where strategy meets absolute minimalism.
               </div>
               <div className={"flex space-x-4"}>
-                  <Link href={"/playfield"}>
+                  <Link href={'/playfield'}>
                       <div className="hidden sm:flex sm:items-center space-x-4 text-white bg-[#006948] p-3 px-6 rounded-xl">
                           Play Now
-                      </div>
-                  </Link>
-                  <Link href={"/signup"}>
-                      <div className="hidden sm:flex sm:items-center space-x-4 text-white bg-[#006948] p-3 px-6 rounded-xl">
-                          Sign up
-                      </div>
-                  </Link>
-                  <Link href={"/login"}>
-                      <div className="hidden sm:flex sm:items-center space-x-4 text-[#006948] border border-[#006948] bg-white p-3 px-6 rounded-xl hover:bg-[#ecfdf5]">
-                          Login
                       </div>
                   </Link>
               </div>
@@ -45,5 +35,5 @@ export default function Home() {
         </div>
       </main>
     </div>
-  );
+  )
 }

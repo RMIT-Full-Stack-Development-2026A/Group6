@@ -1,18 +1,18 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import bcrypt from 'bcryptjs';
+import bcryptjs from 'bcryptjs';
+
+import { v4 as uuidv4 } from 'uuid';
 
 export interface IUser extends Document {
+  userID: string;
   username: string;
   email: string;
   password: string;
-  country: string; 
+  country: string;
   role: 'player' | 'admin';
-  currentSubscription: mongoose.Types.ObjectId | null;
-  security: {
-    failedLoginAttempts: number;
-    lastFailedAttempt: Date | null;
-    accountLockedUntil: Date | null;
-  };
+  status: 'active' | 'deactive';
+  subscription: boolean;
+  subscriptionExpires: Date | null;
   profile: {
     avatar: string;
     firstName: string;
@@ -33,16 +33,52 @@ export interface IUser extends Document {
 
 const userSchema = new Schema<IUser>(
   {
-    username: { type: String, required: true, unique: true, trim: true, minlength: 3, maxlength: 30 },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true, minlength: 6 },
-    country: { type: String, required: true, trim: true }, // top-level (SRS 1.1.1)
-    role: { type: String, enum: ['player', 'admin'], default: 'player' },
-    currentSubscription: { type: Schema.Types.ObjectId, ref: 'UserSubscription', default: null },
-    security: {
-      failedLoginAttempts: { type: Number, default: 0, min: 0 },
-      lastFailedAttempt: { type: Date, default: null },
-      accountLockedUntil: { type: Date, default: null },
+    userID: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+      default: () => uuidv4(),
+    },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      minlength: 3,
+      maxlength: 30,
+      match: /^[A-Za-z0-9_-]+$/,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      maxlength:254,
+      match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    country: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    role: {
+      type: String,
+      enum: ['player', 'admin'],
+      default: 'player',
+    },
+    subscription: {
+      type: Boolean,
+      default: false,
+    },
+    subscriptionExpires: {
+      type: Date,
+      default: null,
     },
     profile: {
       avatar: { type: String, default: '' },
@@ -63,10 +99,14 @@ const userSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
-userSchema.index({ role: 1 });
-userSchema.index({ isActive: 1 });
+// Hash password before saving
+userSchema.pre<IUser>('save', async function () {
+  if (!this.isModified('password')) {
+    return;
+  }
+  const salt = await bcryptjs.genSalt(10);
+  this.password = await bcryptjs.hash(this.password, salt);
+});
 
 // Hash password before insert 
 userSchema.pre('save', async function () {

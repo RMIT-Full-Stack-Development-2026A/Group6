@@ -11,14 +11,18 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Strict rate limiter for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000, // 60 seconds
+  max: 5, // Limit each IP to 5 requests per windowMs
+  message: 'Too many login attempts, please try again later.',
+  skipSuccessfulRequests: true, // Don't count successful requests
+});
 
 const LOCK_WINDOW_MS = 60 * 1000;  // 60 seconds
 const MAX_ATTEMPTS = 5;
 
-/**
- * Middleware: checks if the account identified by req.body.email is currently locked.
- * Rejects the request early if locked, before any password work is done.
- */
+
 const accountLockMiddleware = async (
   req: Request,
   res: Response,

@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { User, Subscription } from '@/services/userService';
 
 interface ProfileSidebarProps {
@@ -8,6 +8,7 @@ interface ProfileSidebarProps {
   subscription?: Subscription | null;
   activeSection: 'profile' | 'history' | 'security' | 'subscription';
   onSectionChange: (section: 'profile' | 'history' | 'security' | 'subscription') => void;
+  onAvatarChange: (avatarUrl: string) => void;
   isOwnProfile: boolean;
 }
 
@@ -16,8 +17,35 @@ export default function ProfileSidebar({
   subscription,
   activeSection,
   onSectionChange,
+  onAvatarChange,
   isOwnProfile,
 }: ProfileSidebarProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleAvatarClick = () => {
+    if (isOwnProfile) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      onAvatarChange(base64String);
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  };
+
   const navItems = [
     {
       key: 'profile' as const,
@@ -64,13 +92,30 @@ export default function ProfileSidebar({
     <div className="bg-white rounded-lg border border-gray-200 p-5 sticky top-6">
       {/* Avatar */}
       <div className="flex flex-col items-center mb-5">
-        <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-200">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        <button
+          type="button"
+          onClick={handleAvatarClick}
+          className="w-24 h-24 rounded-lg overflow-hidden bg-gray-200 relative focus:outline-none focus:ring-2 focus:ring-[#006948]"
+          aria-label="Change profile picture"
+        >
           <img
             src={user.profile.avatar || '/angelina.png'}
             alt={user.username}
             className="w-full h-full object-cover"
           />
-        </div>
+          {isOwnProfile && (
+            <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold">
+              Change Photo
+            </div>
+          )}
+        </button>
         <h2 className="text-base font-semibold mt-3 text-gray-900">{user.username}</h2>
         <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
         {subscription?.name === 'Premium' && (

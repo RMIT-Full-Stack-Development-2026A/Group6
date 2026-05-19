@@ -1,28 +1,40 @@
+// Payload sent to the backend when a user attempts to log in.
 export interface LoginPayload {
-  email: string
+  usernameOrEmail: string
   password: string
 }
 
+// Payload sent to the backend when creating a new user account.
 export interface SignupPayload {
   email: string
   password: string
+  username: string
+  country: string
+}
+
+// User data returned by the backend after successful authentication.
+export interface User {
+  id: string
+  email: string
+  username: string
+  role: string
+  subscription: boolean
+  subscriptionExpires: string | null
 }
 
 export interface LoginResponse {
-
-  user: {
-    id: string
-    email: string
-    role: string
-  }
+  user: User
+  token: string
   message?: string
 }
 
 export type SignupResponse = LoginResponse
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || ""
+// Base backend URL used for auth-related API calls. Falls back to localhost for local development.
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
+  // Send login request to backend and parse the JSON response.
   const response = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
     headers: {
@@ -37,10 +49,36 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     throw new Error(data?.message || "Login failed")
   }
 
+  // Persist token and user info in browser storage for session handling.
+  if (typeof window !== "undefined") {
+    localStorage.setItem("authToken", data.token)
+    localStorage.setItem("user", JSON.stringify(data.user))
+  }
+
   return data
 }
 
+export async function logout(): Promise<void> { 
+  if (typeof window === "undefined") return
+
+  // Notify backend to invalidate the current token, then clear local session storage.
+  const token = localStorage.getItem("authToken")
+  if (token) { 
+    await fetch(`${API_BASE}/api/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }) 
+  }
+
+  localStorage.removeItem("authToken")
+  localStorage.removeItem("user")
+}
+
 export async function signup(payload: SignupPayload): Promise<SignupResponse> {
+  // Register a new user and return the created user/session token.
   const response = await fetch(`${API_BASE}/api/auth/signup`, {
     method: "POST",
     headers: {
@@ -60,5 +98,6 @@ export async function signup(payload: SignupPayload): Promise<SignupResponse> {
 
 export default {
   login,
+  logout,
   signup,
 }

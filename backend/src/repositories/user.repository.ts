@@ -10,8 +10,11 @@ export interface CreateUserData {
   username: string;
   email: string;
   password: string;
-  country: string; 
+  country: string;
   role?: 'player' | 'admin';
+  status?: 'active' | 'deactive';
+  subscription?: boolean;
+  subscriptionExpires?: Date | null;
   profile?: {
     avatar?: string;
     firstName?: string;
@@ -24,9 +27,10 @@ export interface UpdateUserData {
   username?: string;
   email?: string;
   password?: string;
-  country?: string; 
+  country?: string;
   role?: 'player' | 'admin';
-  currentSubscription?: mongoose.Types.ObjectId | null;
+  subscription?: boolean;
+  subscriptionExpires?: Date | null;
   profile?: {
     avatar?: string;
     firstName?: string;
@@ -38,10 +42,12 @@ export interface UpdateUserData {
 }
 
 class UserRepository {
+  // Retrieve a user by its MongoDB `_id`.
   async findById(userId: string): Promise<IUser | null> {
-    return await User.findById(userId).populate('currentSubscription');
+    return await User.findById(userId);
   }
 
+  // Retrieve a user using a normalized email address.
   async findByEmail(email: string): Promise<IUser | null> {
     return await User.findOne({ email });
   }
@@ -50,11 +56,17 @@ class UserRepository {
     return await User.findOne({ username });
   }
 
+  // Create a new user document. The model handles password hashing
+  // and default fields such as `userID` and timestamps.
   async create(userData: CreateUserData): Promise<IUser> {
-    const user = new User(userData);
+    const user = new User({
+      ...userData,
+      status: userData.status ?? 'active', 
+    });
     return await user.save();
   }
 
+  // Update user fields using a safe MongoDB update operation.
   async update(userId: string, updateData: UpdateUserData): Promise<IUser | null> {
     return await User.findByIdAndUpdate(userId, updateData, {
       new: true,
@@ -77,19 +89,21 @@ class UserRepository {
     return { users, pagination: { total, page, pages: Math.ceil(total / limit) } };
   }
 
+  // Update the user's `lastLogin` timestamp after successful authentication.
   async updateLastLogin(userId: string): Promise<IUser | null> {
     return await User.findByIdAndUpdate(userId, { lastLogin: new Date() }, { new: true });
   }
 
+  // Toggle subscription state on the user document.
   async updateSubscription(
     userId: string,
-    subscriptionId: mongoose.Types.ObjectId | string | null
+    subscriptionValue: boolean
   ): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       userId,
-      { currentSubscription: subscriptionId },
+      { subscription: subscriptionValue },
       { new: true }
-    ).populate('currentSubscription');
+    );
   }
 }
 

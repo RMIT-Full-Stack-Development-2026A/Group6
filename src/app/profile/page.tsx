@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { User, Subscription, getProfile, getUserById, getSubscription } from '@/services/userService';
+import { User, Subscription, getProfile, getUserById, getSubscription, updateProfile } from '@/services/userService';
 import ProfileSidebar from '@/components/profile/ProfileSidebar';
 import EditInfoSection from '@/components/profile/EditInfoSection';
 import GameplayPreferencesSection from '@/components/profile/GameplayPreferencesSection';
@@ -44,6 +44,36 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
   };
 
   const handleUserUpdate = (updatedUser: User) => setUser(updatedUser);
+
+  const handleAvatarChange = async (avatarUrl: string) => {
+    if (!user) return;
+
+    setUser((prev) =>
+      prev
+        ? {
+            ...prev,
+            profile: {
+              ...prev.profile,
+              avatar: avatarUrl,
+            },
+          }
+        : prev,
+    );
+
+    try {
+      const updatedUser = await updateProfile({ 
+        username: user.username,
+        profile: { 
+          country: user.profile.country, 
+          avatar: avatarUrl,
+        },
+      });
+
+      setUser(updatedUser);
+    } catch (error) {
+      console.error('Failed to save avatar', error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -101,6 +131,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
               subscription={subscription}
               activeSection={activeSection}
               onSectionChange={setActiveSection}
+              onAvatarChange={handleAvatarChange}
               isOwnProfile={isOwnProfile}
             />
           </div>
@@ -119,26 +150,6 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
 
                     {/* Account Security below, full width */}
                     <SecuritySection />
-
-                    {/* Discard / Save buttons */}
-                    <div className="flex items-center justify-end gap-3 pt-2">
-                      <button
-                        onClick={() => window.location.reload()}
-                        className="px-5 py-2.5 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                      >
-                        Discard Changes
-                      </button>
-                      <button
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#006948] text-white text-sm rounded-lg hover:bg-[#005237] transition-colors"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                          <polyline points="17 21 17 13 7 13 7 21"/>
-                          <polyline points="7 3 7 8 15 8"/>
-                        </svg>
-                        Save Changes
-                      </button>
-                    </div>
                   </>
                 )}
 

@@ -18,8 +18,12 @@ class GameController {
 
   async getById(req: Request<IdParams>, res: Response): Promise<void> {
     try {
-      const game = await gameService.getGameById(req.params.id);
-      res.status(200).json({ success: true, data: game });
+      const id = String(req.params.id);
+      const game = await gameService.getGameById(id);
+      res.status(200).json({
+        success: true,
+        data: game,
+      });
     } catch (error) {
       res.status(404).json({ success: false, message: error instanceof Error ? error.message : 'An error occurred' });
     }
@@ -36,62 +40,10 @@ class GameController {
 
   async update(req: Request<IdParams>, res: Response): Promise<void> {
     try {
-      const game = await gameService.updateGame(req.params.id, req.body);
-      res.status(200).json({ success: true, message: 'Game updated successfully', data: game });
-    } catch (error) {
-      res.status(400).json({ success: false, message: error instanceof Error ? error.message : 'An error occurred' });
-    }
-  }
-
-  async delete(req: Request<IdParams>, res: Response): Promise<void> {
-    try {
-      const game = await gameService.deleteGame(req.params.id);
-      res.status(200).json({ success: true, message: 'Game deleted successfully', data: game });
-    } catch (error) {
-      res.status(404).json({ success: false, message: error instanceof Error ? error.message : 'An error occurred' });
-    }
-  }
-
-
-
-
-  async submitBotGameMoves(req: Request<GameIdParams>, res: Response): Promise<void> {
-    try {
-      const { gameId } = req.params;
-
-      const {
-        playerMoves,
-        botMoves,
-        last_move,
-        outcome = 'abandoned',
-      } = req.body as {
-        playerMoves: AlgebraicMove[];
-        botMoves: AlgebraicMove[];
-        last_move: string;
-        outcome?: 'player' | 'bot' | 'draw' | 'abandoned';
-      };
-
-      // Basic payload validation
-      if (!Array.isArray(playerMoves) || !Array.isArray(botMoves)) {
-        res.status(400).json({
-          success: false,
-          message: 'playerMoves and botMoves must be arrays',
-        });
-        return;
-      }
-      if (!last_move || typeof last_move !== 'string') {
-        res.status(400).json({ success: false, message: 'last_move is required' });
-        return;
-      }
-
-      const game = await gameService.recordBotGameMoves(
-        gameId,
-        playerMoves,
-        botMoves,
-        last_move,
-        outcome
-      );
-
+      // TODO: Add input validation
+      const id = String(req.params.id);
+      const gameData = req.body;
+      const game = await gameService.updateGame(id, gameData);
       res.status(200).json({
         success: true,
         message: 'Bot game moves recorded successfully',
@@ -104,6 +56,26 @@ class GameController {
       });
     }
   }
+
+  // Delete game
+  async delete(req: Request, res: Response): Promise<void> {
+    try {
+      const id = String(req.params.id);
+      const game = await gameService.deleteGame(id);
+      res.status(200).json({
+        success: true,
+        message: 'Game deleted successfully',
+        data: game,
+      });
+    } catch (error) {
+      res.status(404).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'An error occurred',
+      });
+    }
+  }
+
+  
 }
 
 export default new GameController();
