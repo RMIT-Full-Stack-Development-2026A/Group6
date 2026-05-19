@@ -8,9 +8,9 @@ import WinnerOverlay from "@/components/playfield/WinnerOverlay"
 import { GameProvider, useGame, GameConfig, BoardStyle, GameMode } from "@/context/gameContext"
 
 function PlayfieldInner() {
-  const { initGame } = useGame()
+  const { initGame, gameState } = useGame()
   const searchParams = useSearchParams()
-  const initialized  = useRef(false)
+  const initialized = useRef(false)
 
   useEffect(() => {
     if (initialized.current) return
@@ -44,12 +44,24 @@ function PlayfieldInner() {
     initGame(config)
   }, [])
 
+  const gridSize = gameState.config.gridSize
+  const tileSize = gridSize <= 10 ? 52 : 36
+  const gap = 4
+  const boardPx = gridSize * tileSize + (gridSize - 1) * gap + 2 + 22 + 16
+
   return (
     <div className="min-h-screen bg-zinc-50 py-8 px-4">
       <WinnerOverlay />
-      <div className="max-w-7xl mx-auto flex gap-6 items-start flex-wrap">
-        <PlayfieldBoard />
-        <PlayfieldSidebar />
+      <div
+        className="mx-auto flex gap-6 items-start"
+        style={{ width: "fit-content", maxWidth: "100%" }}
+      >
+        <div className="flex-shrink-0" style={{ width: boardPx }}>
+          <PlayfieldBoard />
+        </div>
+        <div className="flex-shrink-0 w-72">
+          <PlayfieldSidebar />
+        </div>
       </div>
     </div>
   )
