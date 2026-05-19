@@ -8,7 +8,7 @@ import userRoutes from './routes/user.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import authRoutes from './routes/auth.routes';
 import paymentRoutes from './routes/payment.routes';
-import gameRoutes from './routes/game.routes';
+import botsRoutes from './routes/bots.routes';
 
 import connectDB from './config/db';
 
@@ -29,7 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/payments', paymentRoutes);
-app.use('/api/games', gameRoutes);
+app.use('/api/bots', botsRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date() });
