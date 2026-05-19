@@ -19,6 +19,7 @@ export interface CreateUserData {
   status?: 'active' | 'deactive';
   subscription?: boolean;
   subscriptionExpires?: Date | null;
+  currentSubscription?: string | null;
   profile?: {
     avatar?: string;
     firstName?: string;
@@ -32,6 +33,7 @@ export interface UpdateUserData {
   password?: string;
   country?: string;
   role?: 'player' | 'admin';
+  status?: 'active' | 'deactive';
   subscription?: boolean;
   subscriptionExpires?: Date | null;
   profile?: {

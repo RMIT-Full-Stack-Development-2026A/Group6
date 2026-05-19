@@ -13,6 +13,7 @@ export interface IUser extends Document {
   status: 'active' | 'deactive';
   subscription: boolean;
   subscriptionExpires: Date | null;
+  currentSubscription: string | null;
   profile: {
     avatar: string;
     firstName: string;
@@ -73,6 +74,10 @@ const userSchema = new Schema<IUser>(
       type: Date,
       default: null,
     },
+    currentSubscription: {
+      type: String,
+      default: null,
+    },
     profile: {
       avatar: {
         type: String,
@@ -117,6 +122,6 @@ userSchema.methods.toJSON = function () {
   return user;
 };
 
-const User = mongoose.model<IUser>('User', userSchema);
+const User = mongoose.model<IUser>('User', userSchema, 'users'); 
 
 export default User;

@@ -62,6 +62,7 @@ class UserService {
     const user = await userRepository.create({
       ...userData,
       password: hashedPassword,
+      currentSubscription: userData.currentSubscription ?? null,
     });
 
     return user;
@@ -131,6 +132,22 @@ class UserService {
   async assignSubscription(userId: string, isSubscribed: boolean): Promise<IUser> {
     const user = await userRepository.updateSubscription(userId, isSubscribed);
     if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
+  }
+
+  async deactivateUser(userId: string): Promise<IUser> {
+    const user = await userRepository.update(userId, { status: 'deactive' });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
+  }
+
+  async reactivateUser(userId: string): Promise<IUser> {
+    const user = await userRepository.update(userId, { status: 'active' });
+    if (!user) { 
       throw new Error('User not found');
     }
     return user;
