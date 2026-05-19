@@ -7,3 +7,7 @@ export interface BoardState {
 }
 
 export const WIN_LENGTH = 5;
+
+export function getWinLength(tableSize: number): number {
+    return Math.min(WIN_LENGTH, tableSize);
+}
