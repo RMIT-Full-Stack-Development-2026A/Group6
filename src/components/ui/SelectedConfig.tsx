@@ -39,7 +39,7 @@ const MARKER_PAIRS: Record<string, string> = {
   "🐉": "🦅",
 }
 
-const GRID_SIZES = [10, 15]
+const GRID_SIZES = [3, 5, 10]
 
 function getSavedBoardStyle(): BoardStyle {
   try {
@@ -69,7 +69,9 @@ export default function SelectedConfig() {
 
   useEffect(() => {
     setBoardStyle(getSavedBoardStyle())
-    setGridSize(selection.gridSize ?? 10)
+    if (selection.gridSize && GRID_SIZES.includes(selection.gridSize)) {
+      setGridSize(selection.gridSize)
+    }
   }, [selection.gridSize])
 
   const markerX = markerKey
@@ -121,7 +123,7 @@ export default function SelectedConfig() {
         </button>
       </div>
 
-      
+     
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Board Size</p>
         <div className="flex gap-2">
@@ -130,19 +132,22 @@ export default function SelectedConfig() {
               key={sz}
               type="button"
               onClick={() => setGridSize(sz)}
-              className={`flex-1 py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+              className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-semibold transition-all flex flex-col items-center gap-0.5 ${
                 selectedSize === sz
                   ? "border-emerald-600 bg-emerald-50 text-emerald-700"
                   : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
               }`}
             >
-              {sz}×{sz}
+              <span>{sz}×{sz}</span>
+              {sz === 3 && <span className="text-[10px] font-normal opacity-60">Quick</span>}
+              {sz === 5 && <span className="text-[10px] font-normal opacity-60">Classic</span>}
+              {sz === 10 && <span className="text-[10px] font-normal opacity-60">Standard</span>}
             </button>
           ))}
         </div>
       </div>
 
-      
+     
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Board Style</p>
         <div className="flex gap-2">
@@ -185,7 +190,7 @@ export default function SelectedConfig() {
         </div>
       </div>
 
-      
+     
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Player 1 Name</label>
@@ -218,7 +223,7 @@ export default function SelectedConfig() {
         </div>
       </div>
 
-     
+   
       {mode === "bot" && (
         <div>
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Bot Difficulty</p>

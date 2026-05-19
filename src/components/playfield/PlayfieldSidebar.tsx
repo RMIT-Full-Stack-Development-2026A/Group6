@@ -1,13 +1,61 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useState } from "react"
+import Image from "next/image"
 import { useGame } from "@/context/gameContext"
 import { useGameTimer } from "@/hooks/useGameTimer"
+import { getProfile } from "@/services/userService"
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
 function winLength(gridSize: number): number {
   if (gridSize <= 3) return 3
   if (gridSize <= 5) return 4
   return 5
+}
+
+function resolveAvatar(avatar: string | null | undefined): string | null {
+  if (!avatar) return null
+  if (avatar.startsWith("http://") || avatar.startsWith("https://") || avatar.startsWith("/")) return avatar
+  return `${API_BASE}/uploads/${avatar}`
+}
+
+function PlayerAvatar({
+  avatar,
+  name,
+  marker,
+  colorClass,
+  bgClass,
+}: {
+  avatar: string | null
+  name: string
+  marker: string
+  colorClass: string
+  bgClass: string
+}) {
+  const [imgError, setImgError] = useState(false)
+  const src = resolveAvatar(avatar)
+
+  if (src && !imgError) {
+    return (
+      <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow flex-shrink-0">
+        <Image
+          src={src}
+          alt={name}
+          width={36}
+          height={36}
+          className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <span className={`w-9 h-9 rounded-full ${bgClass} flex items-center justify-center ${colorClass} font-bold text-lg flex-shrink-0`}>
+      {marker}
+    </span>
+  )
 }
 
 export default function PlayfieldSidebar() {
@@ -26,33 +74,55 @@ export default function PlayfieldSidebar() {
 
   const needed = winLength(config.gridSize)
 
+  
+  const [p1Avatar, setP1Avatar] = useState<string | null>(null)
+
+  useEffect(() => {
+    getProfile()
+      .then((user) => setP1Avatar(user?.profile?.avatar ?? null))
+      .catch(() => setP1Avatar(null))
+  }, [])
+
   return (
     <aside className="w-80 ml-6 flex flex-col gap-4">
 
+     
       <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <div className="flex items-center gap-3 mb-4">
-          <span className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 font-bold text-lg">
-            {markerX}
-          </span>
-          <div>
+          <PlayerAvatar
+            avatar={p1Avatar}
+            name={player1Name}
+            marker={markerX}
+            colorClass="text-rose-600"
+            bgClass="bg-rose-100"
+          />
+          <div className="min-w-0">
             <div className="text-xs text-gray-400 uppercase tracking-wide">Player 1</div>
-            <div className="font-semibold text-gray-800">{player1Name}</div>
+            <div className="font-semibold text-gray-800 truncate">{player1Name}</div>
           </div>
-          <span className="ml-auto text-sm text-gray-400">{p1Moves} moves</span>
+          <span className="ml-auto text-sm text-gray-400 flex-shrink-0">{p1Moves} moves</span>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-lg">
-            {markerO}
-          </span>
-          <div>
-            <div className="text-xs text-gray-400 uppercase tracking-wide">Player 2</div>
-            <div className="font-semibold text-gray-800">{player2Name}</div>
+          
+          <PlayerAvatar
+            avatar={null}
+            name={player2Name}
+            marker={markerO}
+            colorClass="text-emerald-700"
+            bgClass="bg-emerald-100"
+          />
+          <div className="min-w-0">
+            <div className="text-xs text-gray-400 uppercase tracking-wide">
+              {config.mode === "bot" ? "AI Bot" : "Player 2"}
+            </div>
+            <div className="font-semibold text-gray-800 truncate">{player2Name}</div>
           </div>
-          <span className="ml-auto text-sm text-gray-400">{p2Moves} moves</span>
+          <span className="ml-auto text-sm text-gray-400 flex-shrink-0">{p2Moves} moves</span>
         </div>
       </div>
 
+      
       <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <div className="text-xs text-emerald-700 uppercase tracking-wide font-semibold mb-1">
           {isFinished ? "Match Result" : "Current Turn"}
@@ -73,10 +143,10 @@ export default function PlayfieldSidebar() {
         ) : status === "abandoned" ? (
           <div className="text-gray-500 font-semibold">Aborted</div>
         ) : winner === "draw" ? (
-          <div className="text-yellow-600 font-bold">Draw </div>
+          <div className="text-yellow-600 font-bold">Draw 🤝</div>
         ) : (
           <div className="text-emerald-700 font-bold">
-            {winner === "X" ? player1Name : player2Name} wins 
+            {winner === "X" ? player1Name : player2Name} wins 🎉
           </div>
         )}
 
@@ -129,6 +199,7 @@ export default function PlayfieldSidebar() {
         </div>
       </div>
 
+     
       {moves.length > 0 && (
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
           <div className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-2">
