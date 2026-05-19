@@ -1,6 +1,7 @@
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/user.repository';
+import TokenBlacklist from '../models/tokenBlacklist.model';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const usernameRegex = /^[A-Za-z0-9_-]+$/
@@ -75,10 +76,9 @@ function isLoginBlocked(key: string): boolean {
   return !!attempt && attempt.count >= MAX_FAILED_LOGIN_ATTEMPTS && Date.now() - attempt.firstAttempt <= LOGIN_BLOCK_WINDOW_MS;
 }
 
-const tokenBlacklist = new Set<string>();
-
-export function isTokenBlacklisted(token: string): boolean {
-  return tokenBlacklist.has(token);
+export async function isTokenBlacklisted(token: string): Promise<boolean> {
+  const existing = await TokenBlacklist.exists({ token });
+  return Boolean(existing);
 }
 
 function validateSignupData(signupData: SignupRequest): void {
@@ -137,7 +137,16 @@ function validateSignupData(signupData: SignupRequest): void {
 
 class AuthService {
   async logout(token: string): Promise<void> {
-    tokenBlacklist.add(token);
+    const decoded = jwt.decode(token) as { exp?: number } | null;
+    const expiresAt = decoded?.exp
+      ? new Date(decoded.exp * 1000)
+      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); 
+
+    await TokenBlacklist.findOneAndUpdate(
+      { token },
+      { token, expiresAt },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
   }
 
   async signup(signupData: SignupRequest): Promise<SignupResponse> {

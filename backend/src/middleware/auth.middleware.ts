@@ -40,7 +40,7 @@ const authMiddleware = async (
       return;
     }
 
-    if (isTokenBlacklisted(token)) {
+    if (await isTokenBlacklisted(token)) { 
       res.status(401).json({
         success: false,
         message: 'Token has been invalidated. Please login again.',
@@ -122,7 +122,7 @@ export const optionalAuth = async (
       return next();
     }
 
-    if (isTokenBlacklisted(token)) {
+    if (await isTokenBlacklisted(token)) { 
       return next();
     }
 
