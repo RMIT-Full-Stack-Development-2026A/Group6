@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { User, UpdateProfilePayload, updateProfile } from '@/services/userService';
 
 interface EditInfoSectionProps {
@@ -11,15 +11,25 @@ interface EditInfoSectionProps {
 export default function EditInfoSection({ user, onUpdate }: EditInfoSectionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     username: user.username,
     email: user.email,
     country: user.profile.country,
   });
 
+  useEffect(() => {
+    setFormData({
+      username: user.username,
+      email: user.email,
+      country: user.profile.country,
+    });
+  }, [user]);
+
   const handleSave = async () => {
     setIsSaving(true);
     setError(null);
+    setSuccessMessage(null);
     try {
       const payload: UpdateProfilePayload = {
         username: formData.username,
@@ -27,6 +37,7 @@ export default function EditInfoSection({ user, onUpdate }: EditInfoSectionProps
       };
       const updatedUser = await updateProfile(payload);
       onUpdate(updatedUser);
+      setSuccessMessage('Profile updated successfully');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
@@ -41,6 +52,7 @@ export default function EditInfoSection({ user, onUpdate }: EditInfoSectionProps
       country: user.profile.country,
     });
     setError(null);
+    setSuccessMessage(null);
   };
 
   return (
@@ -58,6 +70,11 @@ export default function EditInfoSection({ user, onUpdate }: EditInfoSectionProps
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
             {error}
+          </div>
+        )}
+        {successMessage && (
+          <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 text-sm">
+            {successMessage}
           </div>
         )}
 
@@ -112,6 +129,24 @@ export default function EditInfoSection({ user, onUpdate }: EditInfoSectionProps
               </svg>
             </div>
           </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-end gap-3">
+          <button
+            onClick={handleDiscard}
+            className="px-5 py-2.5 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            type="button"
+          >
+            Discard Changes
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#006948] text-white text-sm rounded-lg hover:bg-[#005237] transition-colors disabled:opacity-60"
+            type="button"
+          >
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </button>
         </div>
       </div>
     </div>

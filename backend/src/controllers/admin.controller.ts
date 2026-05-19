@@ -24,7 +24,7 @@ class AdminController {
   // Get admin by ID
   async getById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = String(req.params.id);
       const admin = await adminService.getAdminById(id);
       res.status(200).json({
         success: true,
@@ -59,7 +59,7 @@ class AdminController {
   async update(req: Request, res: Response): Promise<void> {
     try {
       // TODO: Add input validation
-      const { id } = req.params;
+      const id = String(req.params.id);
       const adminData = req.body;
       const admin = await adminService.updateAdmin(id, adminData);
       res.status(200).json({
@@ -78,7 +78,7 @@ class AdminController {
   // Delete admin
   async delete(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = String(req.params.id);
       const admin = await adminService.deleteAdmin(id);
       res.status(200).json({
         success: true,

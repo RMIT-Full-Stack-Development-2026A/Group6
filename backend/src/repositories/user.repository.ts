@@ -14,7 +14,11 @@ export interface CreateUserData {
   username: string;
   email: string;
   password: string;
-  role?: 'user' | 'admin';
+  country: string;
+  role?: 'player' | 'admin';
+  status?: 'active' | 'deactive';
+  subscription?: boolean;
+  subscriptionExpires?: Date | null;
   profile?: {
     avatar?: string;
     firstName?: string;
@@ -26,8 +30,10 @@ export interface UpdateUserData {
   username?: string;
   email?: string;
   password?: string;
-  role?: 'user' | 'admin';
-  subscription?: mongoose.Types.ObjectId | null;
+  country?: string;
+  role?: 'player' | 'admin';
+  subscription?: boolean;
+  subscriptionExpires?: Date | null;
   profile?: {
     avatar?: string;
     firstName?: string;
@@ -38,10 +44,12 @@ export interface UpdateUserData {
 }
 
 class UserRepository {
+  // Retrieve a user by its MongoDB `_id`.
   async findById(userId: string): Promise<IUser | null> {
-    return await User.findById(userId).populate('subscription');
+    return await User.findById(userId);
   }
 
+  // Retrieve a user using a normalized email address.
   async findByEmail(email: string): Promise<IUser | null> {
     return await User.findOne({ email });
   }
@@ -50,16 +58,22 @@ class UserRepository {
     return await User.findOne({ username });
   }
 
+  // Create a new user document. The model handles password hashing
+  // and default fields such as `userID` and timestamps.
   async create(userData: CreateUserData): Promise<IUser> {
-    const user = new User(userData);
+    const user = new User({
+      ...userData,
+      status: userData.status ?? 'active', 
+    });
     return await user.save();
   }
 
+  // Update user fields using a safe MongoDB update operation.
   async update(userId: string, updateData: UpdateUserData): Promise<IUser | null> {
     return await User.findByIdAndUpdate(userId, updateData, {
       new: true,
       runValidators: true,
-    }).populate('subscription');
+    });
   }
 
   async delete(userId: string): Promise<IUser | null> {
@@ -69,7 +83,6 @@ class UserRepository {
   async findAll(page: number = 1, limit: number = 10): Promise<PaginationResult> {
     const skip = (page - 1) * limit;
     const users = await User.find()
-      .populate('subscription')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -85,6 +98,7 @@ class UserRepository {
     };
   }
 
+  // Update the user's `lastLogin` timestamp after successful authentication.
   async updateLastLogin(userId: string): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       userId,
@@ -93,15 +107,16 @@ class UserRepository {
     );
   }
 
+  // Toggle subscription state on the user document.
   async updateSubscription(
     userId: string,
-    subscriptionId: mongoose.Types.ObjectId | string | null
+    subscriptionValue: boolean
   ): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       userId,
-      { subscription: subscriptionId },
+      { subscription: subscriptionValue },
       { new: true }
-    ).populate('subscription');
+    );
   }
 }
 

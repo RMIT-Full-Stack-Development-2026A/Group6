@@ -1,11 +1,18 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import bcryptjs from 'bcryptjs';
+
+import { v4 as uuidv4 } from 'uuid';
 
 export interface IUser extends Document {
+  userID: string;
   username: string;
   email: string;
   password: string;
-  role: 'user' | 'admin';
-  subscription: mongoose.Types.ObjectId | null;
+  country: string;
+  role: 'player' | 'admin';
+  status: 'active' | 'deactive';
+  subscription: boolean;
+  subscriptionExpires: Date | null;
   profile: {
     avatar: string;
     firstName: string;
@@ -19,6 +26,13 @@ export interface IUser extends Document {
 
 const userSchema = new Schema<IUser>(
   {
+    userID: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+      default: () => uuidv4(),
+    },
     username: {
       type: String,
       required: true,
@@ -26,6 +40,7 @@ const userSchema = new Schema<IUser>(
       trim: true,
       minlength: 3,
       maxlength: 30,
+      match: /^[A-Za-z0-9_-]+$/,
     },
     email: {
       type: String,
@@ -33,20 +48,29 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
+      maxlength:254,
+      match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     },
     password: {
       type: String,
       required: true,
-      minlength: 6,
+    },
+    country: {
+      type: String,
+      required: true,
+      trim: true,
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      enum: ['player', 'admin'],
+      default: 'player',
     },
     subscription: {
-      type: Schema.Types.ObjectId,
-      ref: 'Subscription',
+      type: Boolean,
+      default: false,
+    },
+    subscriptionExpires: {
+      type: Date,
       default: null,
     },
     profile: {
@@ -77,9 +101,14 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-// Index for faster queries
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
+// Hash password before saving
+userSchema.pre<IUser>('save', async function () {
+  if (!this.isModified('password')) {
+    return;
+  }
+  const salt = await bcryptjs.genSalt(10);
+  this.password = await bcryptjs.hash(this.password, salt);
+});
 
 // Method to exclude password from JSON response
 userSchema.methods.toJSON = function () {
