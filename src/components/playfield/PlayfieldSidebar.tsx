@@ -4,6 +4,12 @@ import React from "react"
 import { useGame } from "@/context/gameContext"
 import { useGameTimer } from "@/hooks/useGameTimer"
 
+function winLength(gridSize: number): number {
+  if (gridSize <= 3) return 3
+  if (gridSize <= 5) return 4
+  return 5
+}
+
 export default function PlayfieldSidebar() {
   const { gameState, abortGame, resetGame } = useGame()
   const { config, currentTurn, status, winner, moves, isBotThinking } = gameState
@@ -18,10 +24,11 @@ export default function PlayfieldSidebar() {
   const p1Moves = moves.filter((m) => m.symbol === "X").length
   const p2Moves = moves.filter((m) => m.symbol === "O").length
 
+  const needed = winLength(config.gridSize)
+
   return (
     <aside className="w-80 ml-6 flex flex-col gap-4">
 
-      
       <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <div className="flex items-center gap-3 mb-4">
           <span className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 font-bold text-lg">
@@ -46,7 +53,6 @@ export default function PlayfieldSidebar() {
         </div>
       </div>
 
-    
       <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <div className="text-xs text-emerald-700 uppercase tracking-wide font-semibold mb-1">
           {isFinished ? "Match Result" : "Current Turn"}
@@ -76,7 +82,7 @@ export default function PlayfieldSidebar() {
 
         <div className="mt-3 text-3xl font-bold font-mono text-emerald-700">{timer}</div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-3 gap-2">
           <div className="bg-gray-50 rounded-lg p-3 text-center">
             <div className="text-xs text-gray-400">Total Moves</div>
             <div className="font-bold text-xl">{moves.length}</div>
@@ -84,6 +90,16 @@ export default function PlayfieldSidebar() {
           <div className="bg-gray-50 rounded-lg p-3 text-center">
             <div className="text-xs text-gray-400">Grid</div>
             <div className="font-bold text-xl">{config.gridSize}×{config.gridSize}</div>
+          </div>
+          <div
+            className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-center"
+            title={`Get ${needed} in a row to win`}
+          >
+            <div className="text-xs text-emerald-600 font-semibold flex items-center justify-center gap-1">
+              <span>🏆</span> Win
+            </div>
+            <div className="font-bold text-lg text-emerald-700 leading-tight">{needed}</div>
+            <div className="text-[10px] text-emerald-500 leading-tight">in a row</div>
           </div>
         </div>
 
@@ -113,7 +129,6 @@ export default function PlayfieldSidebar() {
         </div>
       </div>
 
-      
       {moves.length > 0 && (
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
           <div className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-2">

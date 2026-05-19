@@ -50,7 +50,9 @@ function makeEmptyBoard(size: number): CellValue[][] {
 }
 
 function winLength(gridSize: number): number {
-  return Math.min(5, gridSize)
+  if (gridSize <= 3) return 3
+  if (gridSize <= 5) return 4
+  return 5
 }
 
 function colToAlpha(col: number): string {
