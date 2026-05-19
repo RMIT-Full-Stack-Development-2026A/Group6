@@ -6,7 +6,7 @@ import { useGameTimer } from "@/hooks/useGameTimer"
 
 export default function PlayfieldSidebar() {
   const { gameState, abortGame, resetGame } = useGame()
-  const { config, currentTurn, status, winner, moves } = gameState
+  const { config, currentTurn, status, winner, moves, isBotThinking } = gameState
   const { player1Name, player2Name, markerX, markerO } = config
 
   const timer = useGameTimer(status)
@@ -53,10 +53,17 @@ export default function PlayfieldSidebar() {
         </div>
 
         {!isFinished ? (
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-gray-800">{currentPlayerName}</span>
-            <span className="text-sm text-gray-500">({currentMarker})</span>
-          </div>
+          isBotThinking ? (
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-emerald-600 animate-pulse">{player2Name}</span>
+              <span className="text-sm text-gray-500">(thinking…)</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-gray-800">{currentPlayerName}</span>
+              <span className="text-sm text-gray-500">({currentMarker})</span>
+            </div>
+          )
         ) : status === "abandoned" ? (
           <div className="text-gray-500 font-semibold">Aborted</div>
         ) : winner === "draw" ? (

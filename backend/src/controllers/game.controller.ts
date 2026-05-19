@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import gameService, { AlgebraicMove } from '../services/game.service';
-import PlayerStats from '../models/playerStats.model';
+import Game from '../models/game.model';
 
 type IdParams = { id: string };
 type GameIdParams = { gameId: string };
@@ -22,8 +23,100 @@ class GameController {
   async getMyStats(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user!.id;
-      const stats = await PlayerStats.findOne({ user: userId });
-      res.status(200).json({ success: true, data: stats ?? null });
+      const oid = new mongoose.Types.ObjectId(userId);
+
+      const completedGames = await Game.find({
+        $or: [{ 'players.playerX': oid }, { 'players.playerO': oid }],
+        status: 'completed',
+      }).lean();
+
+      const modeKeys = ['local', 'online', 'bot'] as const;
+      type ModeKey = typeof modeKeys[number];
+
+      const modeCounts: Record<ModeKey, { games: number; wins: number; losses: number; draws: number }> = {
+        local:  { games: 0, wins: 0, losses: 0, draws: 0 },
+        online: { games: 0, wins: 0, losses: 0, draws: 0 },
+        bot:    { games: 0, wins: 0, losses: 0, draws: 0 },
+      };
+
+      let totalWins = 0;
+      let totalLosses = 0;
+      let totalDraws = 0;
+      let currentWinStreak = 0;
+      let bestWinStreak = 0;
+      let currentLossStreak = 0;
+      const gridSizeFreq: Record<number, number> = {};
+
+      const sorted = [...completedGames].sort((a, b) => {
+        const ta = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+        const tb = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+        return ta - tb;
+      });
+
+      for (const game of sorted) {
+        const mode = (game.gameMode ?? 'local') as ModeKey;
+        if (!modeCounts[mode]) continue;
+
+        const isPlayerX = game.players?.playerX?.toString() === userId;
+        const isPlayerO = game.players?.playerO?.toString() === userId;
+        if (!isPlayerX && !isPlayerO) continue;
+
+        const playerSymbol = isPlayerX ? 'X' : 'O';
+        modeCounts[mode].games += 1;
+
+        const gs = game.gridSize ?? 10;
+        gridSizeFreq[gs] = (gridSizeFreq[gs] ?? 0) + 1;
+
+        if (game.result === 'draw') {
+          totalDraws += 1;
+          modeCounts[mode].draws += 1;
+          currentWinStreak = 0;
+          currentLossStreak = 0;
+        } else if (game.result === playerSymbol) {
+          totalWins += 1;
+          modeCounts[mode].wins += 1;
+          currentWinStreak += 1;
+          currentLossStreak = 0;
+          if (currentWinStreak > bestWinStreak) bestWinStreak = currentWinStreak;
+        } else {
+          totalLosses += 1;
+          modeCounts[mode].losses += 1;
+          currentWinStreak = 0;
+          currentLossStreak += 1;
+        }
+      }
+
+      const totalGames = totalWins + totalLosses + totalDraws;
+      const winRate = totalGames > 0 ? Number(((totalWins / totalGames) * 100).toFixed(2)) : 0;
+
+      let favoriteGridSize: number | null = null;
+      let maxFreq = 0;
+      for (const [gs, freq] of Object.entries(gridSizeFreq)) {
+        if (freq > maxFreq) {
+          maxFreq = freq;
+          favoriteGridSize = Number(gs);
+        }
+      }
+
+      const stats = {
+        totalGames,
+        wins: totalWins,
+        losses: totalLosses,
+        draws: totalDraws,
+        winRate,
+        currentWinStreak,
+        bestWinStreak,
+        currentLossStreak,
+        favoriteGridSize,
+        totalPlayTime: 0,
+        stats: {
+          local: modeCounts.local,
+          online: { ...modeCounts.online, ranking: 0 },
+          bot: modeCounts.bot,
+        },
+      };
+
+      res.status(200).json({ success: true, data: stats });
     } catch (error) {
       res.status(500).json({ success: false, message: (error as Error).message });
     }
@@ -122,3 +215,4 @@ class GameController {
 }
 
 export default new GameController();
+

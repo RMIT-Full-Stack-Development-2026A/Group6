@@ -69,6 +69,14 @@ export default function GameplayPreferencesSection({ user, onUpdate }: GameplayP
       soundEffects: user.preferences.soundEffects,
       theme: user.preferences.theme as BoardTheme,
     });
+    try {
+      localStorage.setItem('userPreferences', JSON.stringify({
+        notifications: user.preferences.notifications,
+        soundEffects: user.preferences.soundEffects,
+        theme: user.preferences.theme,
+      }));
+    } catch {
+    }
   }, [user]);
 
   const handleSave = async () => {
@@ -79,6 +87,10 @@ export default function GameplayPreferencesSection({ user, onUpdate }: GameplayP
       const payload: UpdateProfilePayload = { preferences: prefs };
       const updatedUser = await updateProfile(payload);
       onUpdate(updatedUser);
+      try {
+        localStorage.setItem('userPreferences', JSON.stringify(prefs));
+      } catch {
+      }
       setSuccessMessage('Preferences saved');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {

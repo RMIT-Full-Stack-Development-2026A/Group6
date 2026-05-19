@@ -30,6 +30,7 @@ export interface GameState {
   startedAt: Date | null
   completedAt: Date | null
   gameId: string | null
+  isBotThinking: boolean
 }
 
 const DEFAULT_CONFIG: GameConfig = {
@@ -47,16 +48,9 @@ function makeEmptyBoard(size: number): CellValue[][] {
   return Array.from({ length: size }, () => Array(size).fill(null))
 }
 
-interface GameContextValue {
-  gameState: GameState
-  initGame: (config: GameConfig) => void
-  placeMove: (row: number, col: number) => void
-  abortGame: () => void
-  resetGame: () => void
-  setGameId: (id: string) => void
+function winLength(gridSize: number): number {
+  return Math.min(5, gridSize)
 }
-
-const GameContext = createContext<GameContextValue | null>(null)
 
 function colToAlpha(col: number): string {
   let result = ""
@@ -89,23 +83,87 @@ function checkWin(
   symbol: CellValue,
   gridSize: number
 ): [number, number][] | null {
+  const needed = winLength(gridSize)
   const directions: [number, number][] = [[0, 1], [1, 0], [1, 1], [1, -1]]
   for (const [dr, dc] of directions) {
     const cells: [number, number][] = [[row, col]]
-    for (let s = 1; s < 5; s++) {
+    for (let s = 1; s < needed; s++) {
       const r = row + dr * s, c = col + dc * s
       if (r >= 0 && r < gridSize && c >= 0 && c < gridSize && board[r][c] === symbol) cells.push([r, c])
       else break
     }
-    for (let s = 1; s < 5; s++) {
+    for (let s = 1; s < needed; s++) {
       const r = row - dr * s, c = col - dc * s
       if (r >= 0 && r < gridSize && c >= 0 && c < gridSize && board[r][c] === symbol) cells.push([r, c])
       else break
     }
-    if (cells.length >= 5) return cells.slice(0, 5)
+    if (cells.length >= needed) return cells.slice(0, needed)
   }
   return null
 }
+
+function applyMove(
+  prev: GameState,
+  row: number,
+  col: number,
+  symbol: "X" | "O",
+  nextTurn: "X" | "O",
+  isBotThinking: boolean
+): GameState {
+  const { gridSize } = prev.config
+  const newBoard = prev.board.map((r) => [...r])
+  newBoard[row][col] = symbol
+
+  const algebraic = toAlgebraic(row, col, gridSize)
+  const newMoves = [...prev.moves, { row, col, symbol, algebraic }]
+
+  const winCells = checkWin(newBoard, row, col, symbol, gridSize)
+  if (winCells) {
+    return {
+      ...prev,
+      board: newBoard,
+      moves: newMoves,
+      status: "completed",
+      winner: symbol,
+      winningCells: winCells,
+      completedAt: new Date(),
+      isBotThinking: false,
+    }
+  }
+
+  const isFull = newBoard.every((r) => r.every((c) => c !== null))
+  if (isFull) {
+    return {
+      ...prev,
+      board: newBoard,
+      moves: newMoves,
+      status: "completed",
+      winner: "draw",
+      winningCells: [],
+      completedAt: new Date(),
+      isBotThinking: false,
+    }
+  }
+
+  return {
+    ...prev,
+    board: newBoard,
+    moves: newMoves,
+    currentTurn: nextTurn,
+    isBotThinking,
+  }
+}
+
+interface GameContextValue {
+  gameState: GameState
+  initGame: (config: GameConfig) => void
+  placeMove: (row: number, col: number) => void
+  abortGame: () => void
+  resetGame: () => void
+  setGameId: (id: string) => void
+}
+
+const GameContext = createContext<GameContextValue | null>(null)
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
@@ -142,6 +200,31 @@ async function apiCreateGame(config: GameConfig): Promise<string | null> {
   }
 }
 
+async function apiGetBotMove(
+  difficulty: string,
+  playerNotations: string[],
+  botNotations: string[],
+  lastMove: string,
+  gridSize: number
+): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/bots/${difficulty}`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        state: { player: playerNotations, bot: botNotations },
+        latestMove: lastMove,
+        tableSize: gridSize,
+      }),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data?.data?.move ?? null
+  } catch {
+    return null
+  }
+}
+
 async function apiSaveBotGame(
   gameId: string,
   playerMoves: { notation: string; row: number; col: number }[],
@@ -156,7 +239,6 @@ async function apiSaveBotGame(
       body: JSON.stringify({ playerMoves, botMoves, last_move: lastMove, outcome }),
     })
   } catch {
-
   }
 }
 
@@ -182,7 +264,6 @@ async function apiSaveLocalGame(gameState: GameState): Promise<void> {
       }),
     })
   } catch {
-
   }
 }
 
@@ -198,16 +279,19 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     startedAt: null,
     completedAt: null,
     gameId: null,
+    isBotThinking: false,
   })
 
   const playerMovesRef = useRef<{ notation: string; row: number; col: number }[]>([])
   const botMovesRef    = useRef<{ notation: string; row: number; col: number }[]>([])
   const lastMoveRef    = useRef<string>("")
+  const botThinkingRef = useRef<boolean>(false)
 
   const initGame = useCallback(async (config: GameConfig) => {
     playerMovesRef.current = []
     botMovesRef.current    = []
     lastMoveRef.current    = ""
+    botThinkingRef.current = false
 
     const gameId = await apiCreateGame(config)
 
@@ -222,6 +306,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       startedAt: new Date(),
       completedAt: null,
       gameId,
+      isBotThinking: false,
     })
   }, [])
 
@@ -229,144 +314,107 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setGameState((prev) => {
       if (prev.status !== "in-progress") return prev
       if (prev.board[row][col] !== null) return prev
+      if (prev.config.mode === "bot" && (prev.isBotThinking || prev.currentTurn !== "X")) return prev
 
-      const { gridSize, mode } = prev.config
+      const { mode } = prev.config
       const symbol = prev.currentTurn
-      const newBoard = prev.board.map((r) => [...r])
-      newBoard[row][col] = symbol
+      const algebraic = toAlgebraic(row, col, prev.config.gridSize)
 
-      const algebraic = toAlgebraic(row, col, gridSize)
-      const newMoves  = [...prev.moves, { row, col, symbol, algebraic }]
-      lastMoveRef.current = algebraic
+      playerMovesRef.current = [...playerMovesRef.current, { notation: toBotNotation(row, col), row, col }]
+      lastMoveRef.current = toBotNotation(row, col)
 
-      if (mode === "bot") {
-        const entry = { notation: algebraic, row, col }
-        if (symbol === "X") {
-          playerMovesRef.current = [...playerMovesRef.current, entry]
-        } else {
-          botMovesRef.current = [...botMovesRef.current, entry]
-        }
-      }
+      const isBotTurn = mode === "bot"
+      if (isBotTurn) botThinkingRef.current = true
 
-      const winCells = checkWin(newBoard, row, col, symbol, gridSize)
-      if (winCells) {
-        return {
-          ...prev,
-          board: newBoard,
-          moves: newMoves,
-          status: "completed",
-          winner: symbol,
-          winningCells: winCells,
-          completedAt: new Date(),
-        }
-      }
-
-      const isFull = newBoard.every((r) => r.every((c) => c !== null))
-      if (isFull) {
-        return {
-          ...prev,
-          board: newBoard,
-          moves: newMoves,
-          status: "completed",
-          winner: "draw",
-          winningCells: [],
-          completedAt: new Date(),
-        }
-      }
-
-      return {
-        ...prev,
-        board: newBoard,
-        moves: newMoves,
-        currentTurn: symbol === "X" ? "O" : "X",
-      }
+      return applyMove(prev, row, col, symbol, symbol === "X" ? "O" : "X", isBotTurn)
     })
   }, [])
 
   const abortGame = useCallback(() => {
-    setGameState((prev) => ({ ...prev, status: "abandoned", completedAt: new Date() }))
+    botThinkingRef.current = false
+    setGameState((prev) => ({ ...prev, status: "abandoned", completedAt: new Date(), isBotThinking: false }))
   }, [])
 
-const resetGame = useCallback(async () => {
-  playerMovesRef.current = []
-  botMovesRef.current    = []
-  lastMoveRef.current    = ""
+  const resetGame = useCallback(async () => {
+    playerMovesRef.current = []
+    botMovesRef.current    = []
+    lastMoveRef.current    = ""
+    botThinkingRef.current = false
 
-  setGameState((prev) => {
-    apiCreateGame(prev.config).then((newId) => {
-      setGameState((curr) => ({ ...curr, gameId: newId }))
+    setGameState((prev) => {
+      apiCreateGame(prev.config).then((newId) => {
+        setGameState((curr) => ({ ...curr, gameId: newId }))
+      })
+      return {
+        ...prev,
+        board: makeEmptyBoard(prev.config.gridSize),
+        currentTurn: prev.config.firstTurn,
+        status: "in-progress",
+        winner: null,
+        winningCells: [],
+        moves: [],
+        startedAt: new Date(),
+        completedAt: null,
+        gameId: null,
+        isBotThinking: false,
+      }
     })
-    return {
-      ...prev,
-      board: makeEmptyBoard(prev.config.gridSize),
-      currentTurn: prev.config.firstTurn,
-      status: "in-progress",
-      winner: null,
-      winningCells: [],
-      moves: [],
-      startedAt: new Date(),
-      completedAt: null,
-      gameId: null,
-    }
-  })
-}, [])
+  }, [])
 
   const setGameId = useCallback((id: string) => {
     setGameState((prev) => ({ ...prev, gameId: id }))
   }, [])
 
   useEffect(() => {
-    const { config, status, currentTurn, board } = gameState
-    if (config.mode !== "bot") return
-    if (status !== "in-progress") return
-    if (currentTurn !== "O") return
+    if (gameState.config.mode !== "bot") return
+    if (gameState.status !== "in-progress") return
+    if (!gameState.isBotThinking) return
 
+    const { config } = gameState
     const difficulty = config.aiDifficulty ?? "easy"
 
-    const runBot = async () => {
-      let getBotMove: (
-        state: { player: string[]; bot: string[] },
-        lastMove: string,
-        tableSize: number
-      ) => string | null
+    const playerNotations = playerMovesRef.current.map((m) => toBotNotation(m.row, m.col))
+    const botNotations    = botMovesRef.current.map((m) => toBotNotation(m.row, m.col))
+    const lastMove        = lastMoveRef.current
 
-      if (difficulty === "hard") {
-        const m = await import("@/utils/bots/hard")
-        getBotMove = m.getBotMove
-      } else if (difficulty === "medium") {
-        const m = await import("@/utils/bots/medium")
-        getBotMove = m.getBotMove
-      } else {
-        const m = await import("@/utils/bots/easy")
-        getBotMove = m.getBotMove
-      }
+    apiGetBotMove(difficulty, playerNotations, botNotations, lastMove, config.gridSize)
+      .then((botNotation) => {
+        if (!botThinkingRef.current) return
 
-      const toUpper = (m: { row: number; col: number }) => toBotNotation(m.row, m.col)
+        if (!botNotation) {
+          botThinkingRef.current = false
+          setGameState((prev) => ({ ...prev, isBotThinking: false, currentTurn: "X" }))
+          return
+        }
 
-      const lastUpperMove = gameState.moves.length > 0
-        ? toUpper(gameState.moves[gameState.moves.length - 1])
-        : ""
+        const { row, col } = fromBotNotation(botNotation)
+        if (row < 0 || row >= config.gridSize || col < 0 || col >= config.gridSize) {
+          botThinkingRef.current = false
+          setGameState((prev) => ({ ...prev, isBotThinking: false, currentTurn: "X" }))
+          return
+        }
 
-      const botUpperNotation = getBotMove(
-        {
-          player: playerMovesRef.current.map(toUpper),
-          bot:    botMovesRef.current.map(toUpper),
-        },
-        lastUpperMove,
-        config.gridSize
-      )
+        setTimeout(() => {
+          if (!botThinkingRef.current) return
+          botThinkingRef.current = false
 
-      if (!botUpperNotation) return
+          setGameState((prev) => {
+            if (prev.status !== "in-progress") return prev
+            if (prev.board[row][col] !== null) return { ...prev, isBotThinking: false, currentTurn: "X" }
 
-      const { row, col } = fromBotNotation(botUpperNotation)
-      if (row < 0 || row >= config.gridSize || col < 0 || col >= config.gridSize) return
-      if (board[row][col] !== null) return
+            const botAlgNotation = toBotNotation(row, col)
+            botMovesRef.current  = [...botMovesRef.current, { notation: botAlgNotation, row, col }]
+            lastMoveRef.current  = botAlgNotation
 
-      setTimeout(() => placeMove(row, col), 300)
-    }
-
-    runBot()
-  }, [gameState.currentTurn, gameState.status])
+            return applyMove(prev, row, col, "O", "X", false)
+          })
+        }, 400)
+      })
+      .catch(() => {
+        botThinkingRef.current = false
+        setGameState((prev) => ({ ...prev, isBotThinking: false, currentTurn: "X" }))
+      })
+  }, [gameState.isBotThinking])
 
   useEffect(() => {
     const { status, winner, gameId, config } = gameState
@@ -380,13 +428,18 @@ const resetGame = useCallback(async () => {
         : winner === "X"      ? "player"
         :                       "bot"
 
-      apiSaveBotGame(
-        gameId,
-        playerMovesRef.current,
-        botMovesRef.current,
-        lastMoveRef.current,
-        outcome
-      )
+      const playerMovesForApi = playerMovesRef.current.map((m) => ({
+        notation: m.notation,
+        row: m.row,
+        col: m.col,
+      }))
+      const botMovesForApi = botMovesRef.current.map((m) => ({
+        notation: m.notation,
+        row: m.row,
+        col: m.col,
+      }))
+
+      apiSaveBotGame(gameId, playerMovesForApi, botMovesForApi, lastMoveRef.current, outcome)
     } else {
       apiSaveLocalGame(gameState)
     }

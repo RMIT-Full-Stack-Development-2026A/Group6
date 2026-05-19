@@ -37,7 +37,7 @@ const BOARD_STYLES = {
 
 export default function PlayfieldBoard() {
   const { gameState, placeMove } = useGame()
-  const { board, status, winner, winningCells, config } = gameState
+  const { board, status, winner, winningCells, config, isBotThinking } = gameState
   const { gridSize, boardStyle, markerX, markerO } = config
 
   const style = BOARD_STYLES[boardStyle] ?? BOARD_STYLES.classic
@@ -48,9 +48,10 @@ export default function PlayfieldBoard() {
   )
 
   const isFinished = status === "completed" || status === "abandoned"
+  const isLocked = isFinished || isBotThinking
 
   function handleClick(row: number, col: number) {
-    if (isFinished) return
+    if (isLocked) return
     if (board[row][col] !== null) return
     placeMove(row, col)
   }
@@ -110,10 +111,10 @@ export default function PlayfieldBoard() {
                 <button
                   key={`${ri}-${ci}`}
                   onClick={() => handleClick(ri, ci)}
-                  disabled={isFinished || cell !== null}
+                  disabled={isLocked || cell !== null}
                   className={[
                     "rounded-md flex items-center justify-center font-bold transition-all duration-100 select-none",
-                    isFinished || cell !== null ? "cursor-default" : "cursor-pointer",
+                    isLocked || cell !== null ? "cursor-default" : "cursor-pointer",
                     isWinCell
                       ? "bg-emerald-400 border-2 border-emerald-600 scale-105 shadow-md"
                       : style.cell,
@@ -141,6 +142,12 @@ export default function PlayfieldBoard() {
       </div>
 
      
+      {isBotThinking && !isFinished && (
+        <div className="mt-3 text-center">
+          <p className="text-sm text-emerald-600 font-medium animate-pulse">Bot is thinking…</p>
+        </div>
+      )}
+
       {isFinished && (
         <div className="mt-4 text-center">
           {status === "abandoned" ? (
