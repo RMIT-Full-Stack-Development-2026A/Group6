@@ -72,7 +72,6 @@ function toAlgebraic(row: number, col: number, gridSize: number): string {
   return `${colToAlpha(col)}${gridSize - row}`
 }
 
-
 function toBotNotation(row: number, col: number): string {
   return String.fromCharCode(65 + col) + (row + 1)
 }
@@ -82,7 +81,6 @@ function fromBotNotation(notation: string): { row: number; col: number } {
   const row = parseInt(notation.slice(1), 10) - 1
   return { row, col }
 }
-
 
 function checkWin(
   board: CellValue[][],
@@ -109,15 +107,21 @@ function checkWin(
   return null
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || ""
+function getAuthHeaders(): HeadersInit {
+  const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+}
 
 async function apiCreateGame(config: GameConfig): Promise<string | null> {
   try {
     const res = await fetch(`${API_BASE}/api/games`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         gameMode: config.mode,
         gridSize: config.gridSize,
@@ -134,10 +138,9 @@ async function apiCreateGame(config: GameConfig): Promise<string | null> {
     const data = await res.json()
     return data?.data?._id ?? null
   } catch {
-    return null 
+    return null
   }
 }
-
 
 async function apiSaveBotGame(
   gameId: string,
@@ -149,15 +152,13 @@ async function apiSaveBotGame(
   try {
     await fetch(`${API_BASE}/api/games/${gameId}/bot-moves`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
+      headers: getAuthHeaders(),
       body: JSON.stringify({ playerMoves, botMoves, last_move: lastMove, outcome }),
     })
   } catch {
-    
+
   }
 }
-
 
 async function apiSaveLocalGame(gameState: GameState): Promise<void> {
   if (!gameState.gameId) return
@@ -165,12 +166,11 @@ async function apiSaveLocalGame(gameState: GameState): Promise<void> {
     const result =
       gameState.status !== "completed" ? null
       : gameState.winner === "draw"   ? "draw"
-      : gameState.winner              // "X" | "O"
+      : gameState.winner
 
     await fetch(`${API_BASE}/api/games/${gameState.gameId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         status: gameState.status,
         result,
@@ -182,11 +182,9 @@ async function apiSaveLocalGame(gameState: GameState): Promise<void> {
       }),
     })
   } catch {
-  
+
   }
 }
-
-
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [gameState, setGameState] = useState<GameState>({
@@ -202,19 +200,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     gameId: null,
   })
 
-  
   const playerMovesRef = useRef<{ notation: string; row: number; col: number }[]>([])
   const botMovesRef    = useRef<{ notation: string; row: number; col: number }[]>([])
-  const lastMoveRef    = useRef<string>("")   
-
+  const lastMoveRef    = useRef<string>("")
 
   const initGame = useCallback(async (config: GameConfig) => {
-    
     playerMovesRef.current = []
     botMovesRef.current    = []
     lastMoveRef.current    = ""
 
-   
     const gameId = await apiCreateGame(config)
 
     setGameState({
@@ -231,7 +225,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
-  
   const placeMove = useCallback((row: number, col: number) => {
     setGameState((prev) => {
       if (prev.status !== "in-progress") return prev
@@ -242,18 +235,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const newBoard = prev.board.map((r) => [...r])
       newBoard[row][col] = symbol
 
-      const algebraic = toAlgebraic(row, col, gridSize)  
+      const algebraic = toAlgebraic(row, col, gridSize)
       const newMoves  = [...prev.moves, { row, col, symbol, algebraic }]
       lastMoveRef.current = algebraic
 
-     
       if (mode === "bot") {
         const entry = { notation: algebraic, row, col }
         if (symbol === "X") {
-          
           playerMovesRef.current = [...playerMovesRef.current, entry]
         } else {
-          
           botMovesRef.current = [...botMovesRef.current, entry]
         }
       }
@@ -293,16 +283,20 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
- 
   const abortGame = useCallback(() => {
     setGameState((prev) => ({ ...prev, status: "abandoned", completedAt: new Date() }))
   }, [])
 
-  const resetGame = useCallback(() => {
-    playerMovesRef.current = []
-    botMovesRef.current    = []
-    lastMoveRef.current    = ""
-    setGameState((prev) => ({
+const resetGame = useCallback(async () => {
+  playerMovesRef.current = []
+  botMovesRef.current    = []
+  lastMoveRef.current    = ""
+
+  setGameState((prev) => {
+    apiCreateGame(prev.config).then((newId) => {
+      setGameState((curr) => ({ ...curr, gameId: newId }))
+    })
+    return {
       ...prev,
       board: makeEmptyBoard(prev.config.gridSize),
       currentTurn: prev.config.firstTurn,
@@ -312,24 +306,24 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       moves: [],
       startedAt: new Date(),
       completedAt: null,
-    }))
-  }, [])
+      gameId: null,
+    }
+  })
+}, [])
 
   const setGameId = useCallback((id: string) => {
     setGameState((prev) => ({ ...prev, gameId: id }))
   }, [])
 
-
   useEffect(() => {
     const { config, status, currentTurn, board } = gameState
     if (config.mode !== "bot") return
     if (status !== "in-progress") return
-    if (currentTurn !== "O") return   // bot is always O
+    if (currentTurn !== "O") return
 
     const difficulty = config.aiDifficulty ?? "easy"
 
     const runBot = async () => {
-      
       let getBotMove: (
         state: { player: string[]; bot: string[] },
         lastMove: string,
@@ -347,7 +341,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         getBotMove = m.getBotMove
       }
 
-      
       const toUpper = (m: { row: number; col: number }) => toBotNotation(m.row, m.col)
 
       const lastUpperMove = gameState.moves.length > 0
@@ -365,30 +358,26 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
       if (!botUpperNotation) return
 
-   
       const { row, col } = fromBotNotation(botUpperNotation)
       if (row < 0 || row >= config.gridSize || col < 0 || col >= config.gridSize) return
       if (board[row][col] !== null) return
 
-     
       setTimeout(() => placeMove(row, col), 300)
     }
 
     runBot()
-  
   }, [gameState.currentTurn, gameState.status])
-
 
   useEffect(() => {
     const { status, winner, gameId, config } = gameState
     if (status !== "completed" && status !== "abandoned") return
-    if (!gameId) return  
+    if (!gameId) return
 
     if (config.mode === "bot") {
       const outcome: "player" | "bot" | "draw" | "abandoned" =
         status === "abandoned" ? "abandoned"
         : winner === "draw"   ? "draw"
-        : winner === "X"      ? "player"   
+        : winner === "X"      ? "player"
         :                       "bot"
 
       apiSaveBotGame(
@@ -401,7 +390,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     } else {
       apiSaveLocalGame(gameState)
     }
-  
   }, [gameState.status])
 
   return (

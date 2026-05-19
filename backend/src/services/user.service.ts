@@ -60,7 +60,7 @@ class UserService {
     // Password updates should go through a dedicated password flow.
     delete updateData.password;
     delete updateData.role;
-    delete updateData.currentSubscription;
+
 
     if (updateData.profile?.avatar && isBase64Image(updateData.profile.avatar)) {
       const avatarUrl = await saveAvatarFromBase64(userId, updateData.profile.avatar, baseUrl);

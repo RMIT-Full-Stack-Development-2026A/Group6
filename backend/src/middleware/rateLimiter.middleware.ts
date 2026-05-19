@@ -101,4 +101,10 @@ const resetLoginAttempts = async (userId: string): Promise<void> => {
   });
 };
 
-export { generalLimiter, accountLockMiddleware, recordFailedLogin, resetLoginAttempts };
+export {
+  generalLimiter,
+  authLimiter,
+  accountLockMiddleware,
+  recordFailedLogin,
+  resetLoginAttempts
+};
