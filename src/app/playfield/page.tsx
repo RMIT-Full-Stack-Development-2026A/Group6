@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import PlayfieldBoard from "@/components/playfield/PlayfieldBoard"
 import PlayfieldSidebar from "@/components/playfield/PlayfieldSidebar"
+import WinnerOverlay from "@/components/playfield/WinnerOverlay"
 import { GameProvider, useGame, GameConfig, BoardStyle, GameMode } from "@/context/gameContext"
 
 function PlayfieldInner() {
@@ -15,7 +16,6 @@ function PlayfieldInner() {
     if (initialized.current) return
     initialized.current = true
 
-    
     const get = (key: string, fallback: string) => searchParams?.get(key) ?? fallback
 
     const mode       = get("mode",       "local")   as GameMode
@@ -42,10 +42,11 @@ function PlayfieldInner() {
     }
 
     initGame(config)
-  }, []) 
+  }, [])
 
   return (
     <div className="min-h-screen bg-zinc-50 py-8 px-4">
+      <WinnerOverlay />
       <div className="max-w-7xl mx-auto flex gap-6 items-start flex-wrap">
         <PlayfieldBoard />
         <PlayfieldSidebar />
