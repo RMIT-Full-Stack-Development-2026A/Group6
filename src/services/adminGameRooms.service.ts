@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export interface Room {
   id: string;
@@ -11,29 +11,36 @@ export interface Room {
 
 /**
  * Fetch all active game rooms
- * API Endpoint: GET /api/rooms
+ * API Endpoint: GET /api/games
  */
 export async function getRooms(): Promise<Room[]> {
-  // TODO: Uncomment API call when backend is ready
-  // try {
-  //   const response = await fetch(`${API_BASE_URL}/rooms`, {
-  //     method: "GET",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //   });
-  //
-  //   if (!response.ok) {
-  //     throw new Error(`Failed to fetch rooms: ${response.statusText}`);
-  //   }
-  //
-  //   const data = await response.json();
-  //   return data;
-  // } catch (error) {
-  //   console.error("Error fetching rooms:", error);
-  //   return [];
-  // }
-  return [];
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/games`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json", 
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch rooms: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    const data = result?.data || [];
+
+    return data.map((room: any) => ({
+      id: room._id || room.id,
+      roomNo: room.name || room._id?.slice(-6).toUpperCase(),
+      player1: room.player1 || "Unknown",
+      player2: room.player2 || null,
+      createdAt: room.createdAt ? new Date(room.createdAt).toLocaleString() : "N/A",
+      status: room.status === "In Progress" ? "In Progress" : "In Lobby",
+    }));
+  } catch (error) {
+    console.error("Error fetching rooms:", error);
+    return [];
+  }
 }
 
 /**

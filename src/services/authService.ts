@@ -93,6 +93,11 @@ export async function signup(payload: SignupPayload): Promise<SignupResponse> {
     throw new Error(data?.message || "Signup failed")
   }
 
+  if (typeof window !== "undefined") {
+    localStorage.setItem("authToken", data.token)
+    localStorage.setItem("user", JSON.stringify(data.user)) 
+  }
+
   return data
 }
 
