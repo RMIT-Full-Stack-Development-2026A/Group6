@@ -4,14 +4,14 @@ export type InviteStatus = 'pending' | 'accepted' | 'declined' | 'expired' | 'ca
 
 export interface IGameInvite extends Document {
   sender: mongoose.Types.ObjectId;
-  recipient: mongoose.Types.ObjectId | null; // null for public invites
+  recipient: mongoose.Types.ObjectId | null; 
   gameMode: 'online';
   gridSize: number;
   isRanked: boolean;
-  isPublic: boolean; // Public invites anyone can join
+  isPublic: boolean; 
   roomCode: string;
   status: InviteStatus;
-  game: mongoose.Types.ObjectId | null; // Reference to created game
+  game: mongoose.Types.ObjectId | null; 
   expiresAt: Date;
   createdAt: Date;
   updatedAt: Date;

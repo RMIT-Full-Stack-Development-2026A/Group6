@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useCallback } from "react"
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from "react"
 
 export type CellValue = "X" | "O" | null
 export type GameStatus = "idle" | "in-progress" | "completed" | "abandoned"
@@ -58,7 +58,6 @@ interface GameContextValue {
 
 const GameContext = createContext<GameContextValue | null>(null)
 
-/** Converts col index to letter(s): 0→a, 25→z, 26→aa */
 function colToAlpha(col: number): string {
   let result = ""
   let n = col
@@ -73,7 +72,18 @@ function toAlgebraic(row: number, col: number, gridSize: number): string {
   return `${colToAlpha(col)}${gridSize - row}`
 }
 
-/** Check for 5 in a row from the last placed cell. Returns winning cells or null. */
+
+function toBotNotation(row: number, col: number): string {
+  return String.fromCharCode(65 + col) + (row + 1)
+}
+
+function fromBotNotation(notation: string): { row: number; col: number } {
+  const col = notation.charCodeAt(0) - 65
+  const row = parseInt(notation.slice(1), 10) - 1
+  return { row, col }
+}
+
+
 function checkWin(
   board: CellValue[][],
   row: number,
@@ -81,35 +91,102 @@ function checkWin(
   symbol: CellValue,
   gridSize: number
 ): [number, number][] | null {
-  const directions: [number, number][] = [
-    [0, 1],
-    [1, 0],
-    [1, 1],
-    [1, -1],
-  ]
-
+  const directions: [number, number][] = [[0, 1], [1, 0], [1, 1], [1, -1]]
   for (const [dr, dc] of directions) {
     const cells: [number, number][] = [[row, col]]
-
-    for (let step = 1; step < 5; step++) {
-      const r = row + dr * step
-      const c = col + dc * step
-      if (r >= 0 && r < gridSize && c >= 0 && c < gridSize && board[r][c] === symbol) {
-        cells.push([r, c])
-      } else break
+    for (let s = 1; s < 5; s++) {
+      const r = row + dr * s, c = col + dc * s
+      if (r >= 0 && r < gridSize && c >= 0 && c < gridSize && board[r][c] === symbol) cells.push([r, c])
+      else break
     }
-    for (let step = 1; step < 5; step++) {
-      const r = row - dr * step
-      const c = col - dc * step
-      if (r >= 0 && r < gridSize && c >= 0 && c < gridSize && board[r][c] === symbol) {
-        cells.push([r, c])
-      } else break
+    for (let s = 1; s < 5; s++) {
+      const r = row - dr * s, c = col - dc * s
+      if (r >= 0 && r < gridSize && c >= 0 && c < gridSize && board[r][c] === symbol) cells.push([r, c])
+      else break
     }
-
     if (cells.length >= 5) return cells.slice(0, 5)
   }
   return null
 }
+
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || ""
+
+async function apiCreateGame(config: GameConfig): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/games`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        gameMode: config.mode,
+        gridSize: config.gridSize,
+        customization: {
+          boardStyle: config.boardStyle,
+          markerX: config.markerX,
+          markerO: config.markerO,
+        },
+        players: { player2Name: config.player2Name },
+        ...(config.mode === "bot" && { aiDifficulty: config.aiDifficulty ?? "easy" }),
+      }),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data?.data?._id ?? null
+  } catch {
+    return null 
+  }
+}
+
+
+async function apiSaveBotGame(
+  gameId: string,
+  playerMoves: { notation: string; row: number; col: number }[],
+  botMoves: { notation: string; row: number; col: number }[],
+  lastMove: string,
+  outcome: "player" | "bot" | "draw" | "abandoned"
+): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/api/games/${gameId}/bot-moves`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ playerMoves, botMoves, last_move: lastMove, outcome }),
+    })
+  } catch {
+    
+  }
+}
+
+
+async function apiSaveLocalGame(gameState: GameState): Promise<void> {
+  if (!gameState.gameId) return
+  try {
+    const result =
+      gameState.status !== "completed" ? null
+      : gameState.winner === "draw"   ? "draw"
+      : gameState.winner              // "X" | "O"
+
+    await fetch(`${API_BASE}/api/games/${gameState.gameId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        status: gameState.status,
+        result,
+        completedAt: gameState.completedAt,
+        moves: gameState.moves.map((m) => ({
+          position: { row: m.row, col: m.col, algebraic: m.algebraic },
+          symbol: m.symbol,
+        })),
+      }),
+    })
+  } catch {
+  
+  }
+}
+
+
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [gameState, setGameState] = useState<GameState>({
@@ -125,7 +202,21 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     gameId: null,
   })
 
-  const initGame = useCallback((config: GameConfig) => {
+  
+  const playerMovesRef = useRef<{ notation: string; row: number; col: number }[]>([])
+  const botMovesRef    = useRef<{ notation: string; row: number; col: number }[]>([])
+  const lastMoveRef    = useRef<string>("")   
+
+
+  const initGame = useCallback(async (config: GameConfig) => {
+    
+    playerMovesRef.current = []
+    botMovesRef.current    = []
+    lastMoveRef.current    = ""
+
+   
+    const gameId = await apiCreateGame(config)
+
     setGameState({
       config,
       board: makeEmptyBoard(config.gridSize),
@@ -136,22 +227,36 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       moves: [],
       startedAt: new Date(),
       completedAt: null,
-      gameId: null,
+      gameId,
     })
   }, [])
 
+  
   const placeMove = useCallback((row: number, col: number) => {
     setGameState((prev) => {
       if (prev.status !== "in-progress") return prev
       if (prev.board[row][col] !== null) return prev
 
-      const { gridSize } = prev.config
+      const { gridSize, mode } = prev.config
       const symbol = prev.currentTurn
       const newBoard = prev.board.map((r) => [...r])
       newBoard[row][col] = symbol
 
-      const algebraic = toAlgebraic(row, col, gridSize)
-      const newMoves = [...prev.moves, { row, col, symbol, algebraic }]
+      const algebraic = toAlgebraic(row, col, gridSize)  
+      const newMoves  = [...prev.moves, { row, col, symbol, algebraic }]
+      lastMoveRef.current = algebraic
+
+     
+      if (mode === "bot") {
+        const entry = { notation: algebraic, row, col }
+        if (symbol === "X") {
+          
+          playerMovesRef.current = [...playerMovesRef.current, entry]
+        } else {
+          
+          botMovesRef.current = [...botMovesRef.current, entry]
+        }
+      }
 
       const winCells = checkWin(newBoard, row, col, symbol, gridSize)
       if (winCells) {
@@ -188,15 +293,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
+ 
   const abortGame = useCallback(() => {
-    setGameState((prev) => ({
-      ...prev,
-      status: "abandoned",
-      completedAt: new Date(),
-    }))
+    setGameState((prev) => ({ ...prev, status: "abandoned", completedAt: new Date() }))
   }, [])
 
   const resetGame = useCallback(() => {
+    playerMovesRef.current = []
+    botMovesRef.current    = []
+    lastMoveRef.current    = ""
     setGameState((prev) => ({
       ...prev,
       board: makeEmptyBoard(prev.config.gridSize),
@@ -213,6 +318,91 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const setGameId = useCallback((id: string) => {
     setGameState((prev) => ({ ...prev, gameId: id }))
   }, [])
+
+
+  useEffect(() => {
+    const { config, status, currentTurn, board } = gameState
+    if (config.mode !== "bot") return
+    if (status !== "in-progress") return
+    if (currentTurn !== "O") return   // bot is always O
+
+    const difficulty = config.aiDifficulty ?? "easy"
+
+    const runBot = async () => {
+      
+      let getBotMove: (
+        state: { player: string[]; bot: string[] },
+        lastMove: string,
+        tableSize: number
+      ) => string | null
+
+      if (difficulty === "hard") {
+        const m = await import("@/utils/bots/hard")
+        getBotMove = m.getBotMove
+      } else if (difficulty === "medium") {
+        const m = await import("@/utils/bots/medium")
+        getBotMove = m.getBotMove
+      } else {
+        const m = await import("@/utils/bots/easy")
+        getBotMove = m.getBotMove
+      }
+
+      
+      const toUpper = (m: { row: number; col: number }) => toBotNotation(m.row, m.col)
+
+      const lastUpperMove = gameState.moves.length > 0
+        ? toUpper(gameState.moves[gameState.moves.length - 1])
+        : ""
+
+      const botUpperNotation = getBotMove(
+        {
+          player: playerMovesRef.current.map(toUpper),
+          bot:    botMovesRef.current.map(toUpper),
+        },
+        lastUpperMove,
+        config.gridSize
+      )
+
+      if (!botUpperNotation) return
+
+   
+      const { row, col } = fromBotNotation(botUpperNotation)
+      if (row < 0 || row >= config.gridSize || col < 0 || col >= config.gridSize) return
+      if (board[row][col] !== null) return
+
+     
+      setTimeout(() => placeMove(row, col), 300)
+    }
+
+    runBot()
+  
+  }, [gameState.currentTurn, gameState.status])
+
+
+  useEffect(() => {
+    const { status, winner, gameId, config } = gameState
+    if (status !== "completed" && status !== "abandoned") return
+    if (!gameId) return  
+
+    if (config.mode === "bot") {
+      const outcome: "player" | "bot" | "draw" | "abandoned" =
+        status === "abandoned" ? "abandoned"
+        : winner === "draw"   ? "draw"
+        : winner === "X"      ? "player"   
+        :                       "bot"
+
+      apiSaveBotGame(
+        gameId,
+        playerMovesRef.current,
+        botMovesRef.current,
+        lastMoveRef.current,
+        outcome
+      )
+    } else {
+      apiSaveLocalGame(gameState)
+    }
+  
+  }, [gameState.status])
 
   return (
     <GameContext.Provider value={{ gameState, initGame, placeMove, abortGame, resetGame, setGameId }}>
