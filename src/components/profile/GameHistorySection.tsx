@@ -66,16 +66,34 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
     return `${minutes} min`;
   };
 
+  const getCurrentUserId = (): string | null => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) return null;
+      // JWT payload is the middle base64 segment
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.id ?? payload._id ?? payload.userId ?? null;
+    } catch {
+      return null;
+    }
+  };
+
   const getResultBadge = (game: Game) => {
     if (game.result === 'draw') {
-      return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">DRAW</span>;
+      return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded font-medium">DRAW</span>;
     }
-    // In a real app, you'd check if the current user won or lost
-    const won = Math.random() > 0.5; // Placeholder
+    if (!game.result || game.status === 'abandoned') {
+      return <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded font-medium">ABORTED</span>;
+    }
+    const myId = getCurrentUserId();
+    const playerXId = game.players.playerX?._id;
+    // result is 'X' or 'O' — I'm playerX if my ID matches playerX
+    const iAmX = myId && playerXId && myId === playerXId;
+    const won = (iAmX && game.result === 'X') || (!iAmX && game.result === 'O');
     if (won) {
-      return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">WIN</span>;
+      return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-medium">WIN</span>;
     }
-    return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">LOSS</span>;
+    return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded font-medium">LOSS</span>;
   };
 
   if (isLoading) {
@@ -115,6 +133,65 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
         <p className="text-sm text-gray-600">
           Review your past architectural triumphs and challenges.
         </p>
+      </div>
+
+      {/* Stats Cards — always shown, zeros for new users */}
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-[#006948] text-white rounded-lg p-5">
+            <div className="text-xs uppercase tracking-wide mb-1 opacity-80">Win Rate</div>
+            <div className="text-3xl font-bold">{stats ? stats.winRate.toFixed(1) : '0.0'}%</div>
+            <div className="text-xs mt-1 opacity-70">{stats ? `${stats.wins}W / ${stats.losses}L / ${stats.draws}D` : '—'}</div>
+          </div>
+          <div className="bg-white border-2 border-gray-200 rounded-lg p-5">
+            <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Games</div>
+            <div className="text-3xl font-bold text-gray-900">{stats?.totalGames ?? 0}</div>
+            <div className="text-xs text-gray-400 mt-1">all modes</div>
+          </div>
+          <div className="bg-white border-2 border-gray-200 rounded-lg p-5">
+            <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Best Streak</div>
+            <div className="text-3xl font-bold text-gray-900">{stats?.bestWinStreak ?? 0}</div>
+            <div className="text-xs text-gray-400 mt-1">current: {stats?.currentWinStreak ?? 0}</div>
+          </div>
+          <div className="bg-white border-2 border-gray-200 rounded-lg p-5">
+            <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Play Time</div>
+            <div className="text-3xl font-bold text-gray-900">{stats?.totalPlayTime ?? 0}<span className="text-base font-normal">m</span></div>
+            <div className="text-xs text-gray-400 mt-1">total minutes</div>
+          </div>
+        </div>
+
+        {/* Per-mode breakdown */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {([ 
+              { key: 'local' as const, label: '🎮 Local', color: 'border-blue-200' },
+              { key: 'bot' as const, label: '🤖 vs Bot', color: 'border-purple-200' },
+              { key: 'online' as const, label: '👥 Online', color: 'border-orange-200' },
+            ]).map(({ key, label, color }) => {
+              const s = stats.stats[key];
+              return (
+                <div key={key} className={`bg-white border-2 ${color} rounded-lg p-4`}>
+                  <div className="text-sm font-semibold text-gray-700 mb-3">{label}</div>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className="text-lg font-bold text-emerald-600">{s.wins}</div>
+                      <div className="text-xs text-gray-400">W</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-red-500">{s.losses}</div>
+                      <div className="text-xs text-gray-400">L</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-gray-500">{s.draws}</div>
+                      <div className="text-xs text-gray-400">D</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs text-gray-400 text-center">{s.games} games total</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Search Bar */}
@@ -182,10 +259,18 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {game.gameMode === 'bot' ? 'AI Bot' : game.gameMode === 'local' ? 'Local Player' : 'Player 2'}
+                        {game.gameMode === 'bot'
+                          ? 'AI Bot'
+                          : game.gameMode === 'local'
+                          ? game.players.player2Name || 'Local Player'
+                          : game.players.playerO?.username || game.players.playerX?.username || 'Unknown'}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {game.gameMode === 'bot' ? 'MEDIUM LEVEL BOT' : game.gameMode === 'local' ? 'LOCAL GUEST' : ''}
+                        {game.gameMode === 'bot' && game.aiDifficulty
+                          ? `${game.aiDifficulty.toUpperCase()} BOT`
+                          : game.gameMode === 'local'
+                          ? 'LOCAL GUEST'
+                          : ''}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -235,30 +320,6 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
         )}
       </div>
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-[#006948] text-white rounded-lg p-6">
-            <div className="text-sm mb-2">WIN RATE OPTIMIZATION</div>
-            <div className="text-3xl font-bold">{stats.winRate.toFixed(1)}%</div>
-            <div className="text-xs mt-1">+4.2% this month</div>
-          </div>
-
-          <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
-            <div className="text-sm text-gray-600 mb-2">LONGEST WIN STREAK</div>
-            <div className="text-3xl font-bold text-gray-900">{stats.bestWinStreak}</div>
-            <div className="text-xs text-gray-500 mt-1">—</div>
-          </div>
-
-          <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
-            <div className="text-sm text-gray-600 mb-2">AVG GAME LENGTH</div>
-            <div className="text-3xl font-bold text-gray-900">
-              {stats.totalPlayTime > 0 ? (stats.totalPlayTime / stats.totalGames).toFixed(1) : '0'}m
-            </div>
-            <div className="text-xs text-gray-500 mt-1">—</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

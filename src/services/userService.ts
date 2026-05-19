@@ -128,7 +128,7 @@ export interface UpdateProfilePayload {
   preferences?: {
     notifications?: boolean;
     soundEffects?: boolean;
-    theme?: 'light' | 'dark' | 'auto';
+    theme?: 'classic' | 'mint' | 'dark';
   };
 }
 
@@ -154,7 +154,8 @@ export interface User {
   username: string;
   email: string;
   role: 'user' | 'admin';
-  currentSubscription: string | null;
+  subscription: boolean;
+  subscriptionExpires: Date | null;
   profile: {
     avatar: string;
     firstName: string;
@@ -165,7 +166,7 @@ export interface User {
   preferences: {
     notifications: boolean;
     soundEffects: boolean;
-    theme: 'light' | 'dark' | 'auto';
+    theme: 'classic' | 'mint' | 'dark';
   };
   isActive: boolean;
   isEmailVerified: boolean;
@@ -195,33 +196,71 @@ export interface Subscription {
   displayOrder: number;
 }
 
-export async function getPlayerStats(userId?: string): Promise<any> {
-  return {
-    totalGames: 1284, 
-    wins: 930,
-    losses: 200,
-    draws: 154,
-    winRate: 72.4,
-    currentWinStreak: 5,
-    bestWinStreak: 14,
-    totalPlayTime: 504,
-    stats: {
-      local: { games: 400, wins: 300, losses: 70, draws: 30 },
-      online: { games: 700, wins: 530, losses: 110, draws: 60, ranking: 42 },
-      bot: { games: 184, wins: 100, losses: 20, draws: 64 },
-    },
+export interface Game {
+  _id: string;
+  gameMode: 'local' | 'online' | 'bot';
+  gridSize: number;
+  players: {
+    playerX: { _id: string; username: string } | null;
+    playerO: { _id: string; username: string } | null;
+    player2Name?: string;
+  };
+  aiDifficulty?: 'easy' | 'medium' | 'hard';
+  result: 'X' | 'O' | 'draw' | null;
+  status: 'waiting' | 'in-progress' | 'completed' | 'abandoned';
+  roomCode?: string;
+  startedAt: Date | string | null;
+  completedAt: Date | string | null;
+  createdAt: Date | string;
+}
+
+export interface PlayerStats {
+  totalGames: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  winRate: number;
+  currentWinStreak: number;
+  bestWinStreak: number;
+  currentLossStreak: number;
+  totalPlayTime: number;
+  favoriteGridSize: number | null;
+  stats: {
+    local: { games: number; wins: number; losses: number; draws: number };
+    online: { games: number; wins: number; losses: number; draws: number; ranking: number };
+    bot: { games: number; wins: number; losses: number; draws: number };
   };
 }
 
-export async function getGameHistory(userId?: string, page = 1, limit = 10): Promise<any> {
-  return {
-    total: 1284,
-    games: [
-      { _id: "g1", gameMode: "online", roomCode: "#8821", players: { playerX: "Elias Jensen", playerO: "Tim Cook" }, result: "X", startedAt: new Date(), completedAt: new Date() },
-      { _id: "g2", gameMode: "local", roomCode: "#8819", players: { playerX: "Elias Jensen", playerO: "Player 2" }, result: "O", startedAt: new Date(), completedAt: new Date() },
-      { _id: "g3", gameMode: "bot", roomCode: "#8812", players: { playerX: "Elias Jensen", playerO: "Jeff (Bot)" }, result: "draw", startedAt: new Date(), completedAt: new Date() },
-    ],
-  };
+export async function getPlayerStats(userId?: string): Promise<PlayerStats | null> {
+  const token = getAuthToken();
+  if (!token) return null;
+  try {
+    const data = await requestJson<PlayerStats | null>(`${API_BASE}/api/games/my/stats`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    });
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function getGameHistory(userId?: string, page = 1, limit = 10): Promise<{ total: number; games: Game[] }> {
+  const token = getAuthToken();
+  if (!token) return { total: 0, games: [] };
+  try {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    const res = await fetch(`${API_BASE}/api/games/my?${params}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || 'Failed');
+    return { total: data.total ?? 0, games: data.data ?? [] };
+  } catch {
+    return { total: 0, games: [] };
+  }
 }
 
 export default { getProfile, getUserById, updateProfile, updatePassword, getSubscription, getPlayerStats, getGameHistory };
