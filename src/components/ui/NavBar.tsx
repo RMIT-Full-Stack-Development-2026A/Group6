@@ -24,16 +24,6 @@ export default function NavBar() {
 							<Link href="/">TicTacToang</Link>
 						</div>
 
-						<div className="flex-1 flex justify-center">
-							<div className="max-w-md w-full">
-								<input
-									type="text"
-									placeholder="Search users, rooms, settings..."
-									className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-700 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-								/>
-							</div>
-						</div>
-
 						<div className="sm:hidden">
 							<button aria-label="Open menu" className="p-2 rounded-md text-gray-600 hover:bg-gray-100">☰</button>
 						</div>
