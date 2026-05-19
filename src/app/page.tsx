@@ -1,5 +1,4 @@
 import PlayBox from "@/components/ui/PlayBox";
-import Link from "next/link";
 import React from "react";
 
 export default function Home() {
@@ -14,16 +13,16 @@ export default function Home() {
                   where strategy meets absolute minimalism.
               </div>
               <div className={"flex space-x-4"}>
-                  <Link href={"#"}>
+                  <a href={"#"}>
                       <div className="hidden sm:flex sm:items-center space-x-4 text-white bg-[#006948] p-3 px-6 rounded-xl">
                           Play Now
                       </div>
-                  </Link>
-                  <Link href={"#"}>
+                  </a>
+                  <a href={"#"}>
                       <div className="hidden sm:flex sm:items-center space-x-4 text-white bg-[#006948] p-3 px-6 rounded-xl">
                           Sign up
                       </div>
-                  </Link>
+                  </a>
               </div>
           </div>
         <div className={"grid grid-cols-3 gap-4"}>
