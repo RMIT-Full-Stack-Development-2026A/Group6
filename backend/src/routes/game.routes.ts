@@ -5,6 +5,12 @@ import authMiddleware from '../middleware/auth.middleware';
 const router = Router();
 
 // All game routes require authentication
+router.get('/my', authMiddleware, (req: Request, res: Response) =>
+  gameController.getMyGames(req, res)
+);
+router.get('/my/stats', authMiddleware, (req: Request, res: Response) =>
+  gameController.getMyStats(req, res)
+);
 router.post('/', authMiddleware, (req: Request, res: Response) =>
   gameController.create(req, res)
 );

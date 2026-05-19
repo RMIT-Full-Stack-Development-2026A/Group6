@@ -36,18 +36,24 @@ export interface UpdateUserData {
     firstName?: string;
     lastName?: string;
     bio?: string;
+    country?: string;
+  };
+  preferences?: {
+    notifications?: boolean;
+    soundEffects?: boolean;
+    theme?: 'classic' | 'mint' | 'dark';
   };
   isActive?: boolean;
   lastLogin?: Date;
 }
 
 class UserRepository {
-  // Retrieve a user by its MongoDB `_id`.
+  
   async findById(userId: string): Promise<IUser | null> {
     return await User.findById(userId);
   }
 
-  // Retrieve a user using a normalized email address.
+ 
   async findByEmail(email: string): Promise<IUser | null> {
     return await User.findOne({ email });
   }
@@ -56,8 +62,7 @@ class UserRepository {
     return await User.findOne({ username });
   }
 
-  // Create a new user document. The model handles password hashing
-  // and default fields such as `userID` and timestamps.
+
   async create(userData: CreateUserData): Promise<IUser> {
     const user = new User({
       ...userData,
@@ -66,12 +71,33 @@ class UserRepository {
     return await user.save();
   }
 
-  // Update user fields using a safe MongoDB update operation.
+
   async update(userId: string, updateData: UpdateUserData): Promise<IUser | null> {
-    return await User.findByIdAndUpdate(userId, updateData, {
+   
+    const flat: Record<string, unknown> = {};
+
+    const { profile, preferences, ...topLevel } = updateData;
+
+    for (const [k, v] of Object.entries(topLevel)) {
+      if (v !== undefined) flat[k] = v;
+    }
+
+    if (profile) {
+      for (const [k, v] of Object.entries(profile)) {
+        if (v !== undefined) flat[`profile.${k}`] = v;
+      }
+    }
+
+    if (preferences) {
+      for (const [k, v] of Object.entries(preferences)) {
+        if (v !== undefined) flat[`preferences.${k}`] = v;
+      }
+    }
+
+    return await User.findByIdAndUpdate(userId, { $set: flat }, {
       new: true,
       runValidators: true,
-    }).populate('currentSubscription');
+    });
   }
 
   async delete(userId: string): Promise<IUser | null> {
@@ -81,7 +107,6 @@ class UserRepository {
   async findAll(page: number = 1, limit: number = 10): Promise<PaginationResult> {
     const skip = (page - 1) * limit;
     const users = await User.find()
-      .populate('currentSubscription')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -89,12 +114,12 @@ class UserRepository {
     return { users, pagination: { total, page, pages: Math.ceil(total / limit) } };
   }
 
-  // Update the user's `lastLogin` timestamp after successful authentication.
+ 
   async updateLastLogin(userId: string): Promise<IUser | null> {
     return await User.findByIdAndUpdate(userId, { lastLogin: new Date() }, { new: true });
   }
 
-  // Toggle subscription state on the user document.
+
   async updateSubscription(
     userId: string,
     subscriptionValue: boolean

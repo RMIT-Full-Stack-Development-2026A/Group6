@@ -27,6 +27,27 @@ class GameRepository {
       .sort({ createdAt: -1 });
   }
 
+  async findByPlayerPaginated(
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<{ games: IGame[]; total: number }> {
+    const skip = (page - 1) * limit;
+    const filter = {
+      $or: [{ 'players.playerX': userId }, { 'players.playerO': userId }],
+    };
+    const [games, total] = await Promise.all([
+      Game.find(filter)
+        .populate('players.playerX', 'username profile.avatar')
+        .populate('players.playerO', 'username profile.avatar')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Game.countDocuments(filter),
+    ]);
+    return { games, total };
+  }
+
   async findByStatus(status: IGame['status']): Promise<IGame[]> {
     return await Game.find({ status })
       .populate('players.playerX', 'username')

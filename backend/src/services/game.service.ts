@@ -166,6 +166,14 @@ class GameService {
     }
   }
 
+  async getGamesByPlayer(userId: string, page: number, limit: number): Promise<{ games: IGame[]; total: number }> {
+    try {
+      return await gameRepository.findByPlayerPaginated(userId, page, limit);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async updateGame(id: string, gameData: Partial<IGame>): Promise<IGame> {
     try {
       const game = await gameRepository.update(id, gameData);

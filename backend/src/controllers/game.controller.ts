@@ -1,10 +1,33 @@
 import { Request, Response } from 'express';
 import gameService, { AlgebraicMove } from '../services/game.service';
+import PlayerStats from '../models/playerStats.model';
 
 type IdParams = { id: string };
 type GameIdParams = { gameId: string };
 
 class GameController {
+
+  async getMyGames(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const result = await gameService.getGamesByPlayer(userId, page, limit);
+      res.status(200).json({ success: true, data: result.games, total: result.total });
+    } catch (error) {
+      res.status(500).json({ success: false, message: (error as Error).message });
+    }
+  }
+
+  async getMyStats(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const stats = await PlayerStats.findOne({ user: userId });
+      res.status(200).json({ success: true, data: stats ?? null });
+    } catch (error) {
+      res.status(500).json({ success: false, message: (error as Error).message });
+    }
+  }
 
   async create(req: Request, res: Response): Promise<void> {
     try {

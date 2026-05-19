@@ -31,7 +31,7 @@ export interface IUser extends Document {
   preferences: {
     notifications: boolean;
     soundEffects: boolean;
-    theme: 'light' | 'dark' | 'auto';
+    theme: 'classic' | 'mint' | 'dark';
   };
 
   isActive: boolean;
@@ -163,8 +163,8 @@ const userSchema = new Schema<IUser>(
 
       theme: {
         type: String,
-        enum: ['light', 'dark', 'auto'],
-        default: 'auto',
+        enum: ['classic', 'mint', 'dark'],
+        default: 'classic',
       },
     },
 
