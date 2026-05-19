@@ -201,7 +201,7 @@ class GameController {
         res.status(400).json({ success: false, message: 'playerMoves and botMoves must be arrays' });
         return;
       }
-      if (!last_move || typeof last_move !== 'string') {
+      if (outcome !== 'abandoned' && (!last_move || typeof last_move !== 'string')) {
         res.status(400).json({ success: false, message: 'last_move is required' });
         return;
       }
@@ -215,4 +215,3 @@ class GameController {
 }
 
 export default new GameController();
-

@@ -114,7 +114,6 @@ const subscriptionSchema = new Schema<ISubscription>(
 );
 
 // Index for faster queries
-subscriptionSchema.index({ name: 1 });
 subscriptionSchema.index({ isActive: 1 });
 subscriptionSchema.index({ displayOrder: 1 });
 

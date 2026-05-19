@@ -31,6 +31,7 @@ export interface GameState {
   completedAt: Date | null
   gameId: string | null
   isBotThinking: boolean
+  botTrigger: number
 }
 
 const DEFAULT_CONFIG: GameConfig = {
@@ -151,6 +152,7 @@ function applyMove(
     moves: newMoves,
     currentTurn: nextTurn,
     isBotThinking,
+    botTrigger: isBotThinking ? prev.botTrigger + 1 : prev.botTrigger,
   }
 }
 
@@ -232,11 +234,12 @@ async function apiSaveBotGame(
   lastMove: string,
   outcome: "player" | "bot" | "draw" | "abandoned"
 ): Promise<void> {
+  const effectiveLastMove = lastMove || (playerMoves[0]?.notation ?? "A1")
   try {
     await fetch(`${API_BASE}/api/games/${gameId}/bot-moves`, {
       method: "POST",
       headers: getAuthHeaders(),
-      body: JSON.stringify({ playerMoves, botMoves, last_move: lastMove, outcome }),
+      body: JSON.stringify({ playerMoves, botMoves, last_move: effectiveLastMove, outcome }),
     })
   } catch {
   }
@@ -280,6 +283,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     completedAt: null,
     gameId: null,
     isBotThinking: false,
+    botTrigger: 0,
   })
 
   const playerMovesRef = useRef<{ notation: string; row: number; col: number }[]>([])
@@ -307,6 +311,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       completedAt: null,
       gameId,
       isBotThinking: false,
+      botTrigger: 0,
     })
   }, [])
 
@@ -357,6 +362,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         completedAt: null,
         gameId: null,
         isBotThinking: false,
+        botTrigger: 0,
       }
     })
   }, [])
@@ -414,7 +420,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         botThinkingRef.current = false
         setGameState((prev) => ({ ...prev, isBotThinking: false, currentTurn: "X" }))
       })
-  }, [gameState.isBotThinking])
+  }, [gameState.botTrigger])
 
   useEffect(() => {
     const { status, winner, gameId, config } = gameState
