@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { User, Subscription, getProfile, getUserById, getSubscription, updateProfile } from '@/services/userService';
+import { User, getProfile, getUserById, updateProfile } from '@/services/userService';
 import ProfileSidebar from '@/components/profile/ProfileSidebar';
 import EditInfoSection from '@/components/profile/EditInfoSection';
 import GameplayPreferencesSection from '@/components/profile/GameplayPreferencesSection';
@@ -15,7 +15,6 @@ interface ProfilePageProps {
 
 export default function ProfilePage({ userId }: ProfilePageProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'profile' | 'history' | 'security' | 'subscription'>('profile');
@@ -30,12 +29,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
     try {
       const userData = isOwnProfile ? await getProfile() : await getUserById(userId!);
       setUser(userData);
-      if (userData.currentSubscription) {
-        try {
-          const subData = await getSubscription(userData.currentSubscription);
-          setSubscription(subData);
-        } catch {}
-      }
+      // subscription is now a boolean on the User model; no separate fetch needed
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
     } finally {
@@ -128,7 +122,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
           <div className="lg:col-span-1">
             <ProfileSidebar
               user={user}
-              subscription={subscription}
+              subscription={user.subscription}
               activeSection={activeSection}
               onSectionChange={setActiveSection}
               onAvatarChange={handleAvatarChange}
@@ -155,7 +149,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
 
                 {activeSection === 'history' && <GameHistorySection isOwnProfile={true} />}
                 {activeSection === 'security' && <SecuritySection />}
-                {activeSection === 'subscription' && <SubscriptionSection subscriptionId={user.currentSubscription} />}
+                {activeSection === 'subscription' && <SubscriptionSection isPremium={user.subscription} />}
               </>
             ) : (
               <GameHistorySection userId={userId} isOwnProfile={false} />

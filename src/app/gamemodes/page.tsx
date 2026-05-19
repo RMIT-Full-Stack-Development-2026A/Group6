@@ -1,6 +1,7 @@
 import React from "react";
 import MatchType from "@/components/ui/MatchType";
 import DraftGrid from "@/components/ui/DraftGrid";
+import SelectedConfig from "@/components/ui/SelectedConfig";
 import { SelectionProvider } from "@/context/selection";
 
 export default function Home() {
@@ -18,6 +19,9 @@ export default function Home() {
               <DraftGrid size={3} subtitle={"Quick Session"}/>
               <DraftGrid size={5} subtitle={"Quick Session"}/>
               <DraftGrid size={10} subtitle={"Quick Session"}/>
+          </div>
+          <div className={"py-4"}>
+            <SelectedConfig />
           </div>
         </SelectionProvider>
       </main>
