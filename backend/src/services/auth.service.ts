@@ -17,7 +17,7 @@ export interface SignupRequest {
 export interface SignupResponse {
   user: {
     id: string;
-    userID: string; 
+    userID: string;
     email: string;
     username: string;
     country: string;
@@ -49,7 +49,8 @@ export interface LoginResponse {
 }
 
 const MAX_FAILED_LOGIN_ATTEMPTS = 5;
-const LOGIN_BLOCK_WINDOW_MS = 60 * 1000;
+const LOGIN_BLOCK_WINDOW_MS = 60 * 1000; //60s
+const TOKEN_BLACKLIST_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const failedLoginAttempts = new Map<string, { count: number; firstAttempt: number }>();
 
@@ -139,8 +140,8 @@ class AuthService {
   async logout(token: string): Promise<void> {
     const decoded = jwt.decode(token) as { exp?: number } | null;
     const expiresAt = decoded?.exp
-      ? new Date(decoded.exp * 1000)
-      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); 
+      ? new Date(Math.min(decoded.exp * 1000, Date.now() + TOKEN_BLACKLIST_TTL_MS))
+      : new Date(Date.now() + TOKEN_BLACKLIST_TTL_MS);
 
     await TokenBlacklist.findOneAndUpdate(
       { token },
@@ -150,7 +151,7 @@ class AuthService {
   }
 
   async signup(signupData: SignupRequest): Promise<SignupResponse> {
-    
+
     validateSignupData(signupData);
 
     // Use the User repository to check if this email already exists.
@@ -198,7 +199,7 @@ class AuthService {
         status: user.status,
         subscription: user.subscription,
         subscriptionExpires: user.subscriptionExpires,
-      }, 
+      },
       token,
       message: 'User registered successfully',
     };
