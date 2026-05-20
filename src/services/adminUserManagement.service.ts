@@ -17,20 +17,24 @@ export interface AdminCreateUserPayload {
   currentSubscription?: string | null; 
 }
 
-function getAuthHeaders() {
-  if (typeof window === "undefined") return {
+function getAuthHeaders(): HeadersInit {
+  if (typeof window === "undefined") {
+    return {
+      "Content-Type": "application/json",
+    };
+  }
+
+  const token = sessionStorage.getItem("authToken");
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  const token = sessionStorage.getItem("authToken");
   if (!token) {
     throw new Error("No auth token found. Please login again.");
   }
 
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  headers.Authorization = `Bearer ${token}`;
+  return headers;
 }
 
 /**
