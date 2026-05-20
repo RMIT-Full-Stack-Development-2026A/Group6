@@ -6,7 +6,9 @@ export interface Room {
   player1: string;
   player2: string | null;
   createdAt: string;
-  status: "In Progress" | "In Lobby";
+  status: string;
+  gameMode?: string;
+  aiDifficulty?: string;
 }
 
 /**
@@ -35,7 +37,9 @@ export async function getRooms(): Promise<Room[]> {
       player1: room.player1 || "Unknown",
       player2: room.player2 || null,
       createdAt: room.createdAt ? new Date(room.createdAt).toLocaleString() : "N/A",
-      status: room.status === "In Progress" ? "In Progress" : "In Lobby",
+      status: room.status || "",
+      gameMode: room.gameMode || room.matchType || room.type || "Standard",
+      aiDifficulty: room.aiDifficulty || room.difficulty || undefined,
     }));
   } catch (error) {
     console.error("Error fetching rooms:", error);

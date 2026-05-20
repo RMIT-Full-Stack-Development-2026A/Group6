@@ -128,9 +128,10 @@ export default function AdminPage() {
   );
 
   const filteredRooms = rooms.filter((room) =>
-    room.roomNo.includes(roomSearchQuery) ||
-    room.player1.includes(roomSearchQuery) || 
-    room.player2?.includes(roomSearchQuery)
+    room.id.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
+    room.roomNo.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
+    room.gameMode?.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
+    room.status.toLowerCase().includes(roomSearchQuery.toLowerCase())
   );
 
   const renderContent = () => {

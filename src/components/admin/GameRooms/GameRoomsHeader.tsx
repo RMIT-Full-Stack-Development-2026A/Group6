@@ -38,7 +38,7 @@ export default function GameRoomsHeader({ searchQuery = "", onSearchChange, onFi
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange?.(e.target.value)}
-          placeholder="Search room number or player"
+          placeholder="Search room ID, game mode, or status"
           className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
         />
       </div>

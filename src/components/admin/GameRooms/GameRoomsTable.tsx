@@ -13,11 +13,11 @@ export default function GameRoomsTable({ rooms, onSpectate, onClose }: GameRooms
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left px-6 py-3 font-semibold text-gray-700">Room #</th>
-            <th className="text-left px-6 py-3 font-semibold text-gray-700">Player 1</th>
-            <th className="text-left px-6 py-3 font-semibold text-gray-700">Player 2</th>
-            <th className="text-left px-6 py-3 font-semibold text-gray-700">Created At</th>
+            <th className="text-left px-6 py-3 font-semibold text-gray-700">Room ID</th>
+            <th className="text-left px-6 py-3 font-semibold text-gray-700">Game Mode</th>
             <th className="text-left px-6 py-3 font-semibold text-gray-700">Status</th>
+            <th className="text-left px-6 py-3 font-semibold text-gray-700">Created At</th>
+            <th className="text-left px-6 py-3 font-semibold text-gray-700">AI Difficulty</th>
             <th className="text-left px-6 py-3 font-semibold text-gray-700">Actions</th>
           </tr>
         </thead>
@@ -25,7 +25,7 @@ export default function GameRoomsTable({ rooms, onSpectate, onClose }: GameRooms
           {rooms.map((room) => (
             <tr key={room.id} className="border-b border-gray-100 hover:bg-gray-50">
               <td className="px-6 py-4 text-gray-900 relative">
-                {room.status === "In Progress" ? (
+                {room.status.toLowerCase().includes("progress") || room.status.toLowerCase().includes("playing") || room.status.toLowerCase().includes("started") ? (
                   <span className="relative group cursor-pointer inline-block mr-2">
                     <svg
                       className="w-5 h-5 text-blue-600"
@@ -53,21 +53,27 @@ export default function GameRoomsTable({ rooms, onSpectate, onClose }: GameRooms
                 ) : (
                   <span className="inline-block mr-2 w-5 h-5"></span>
                 )}
-                <span className="font-bold">{room.roomNo}</span>
+                <span className="font-bold">{room.id}</span>
               </td>
-              <td className="px-6 py-4 text-gray-600">{room.player1}</td>
-              <td className="px-6 py-4 text-gray-600">{room.player2 || "-"}</td>
-              <td className="px-6 py-4 text-gray-600">{room.createdAt}</td>
+              <td className="px-6 py-4 text-gray-600">{room.gameMode || "N/A"}</td>
               <td className="px-6 py-4">
                 <span
                   className={`px-3 py-1 rounded-full text-sm font-bold ${
-                    room.status === "In Progress"
+                    room.status.toLowerCase().includes("progress")
                       ? "bg-green-300 text-green-800"
-                      : "bg-green-100 text-green-800"
+                      : room.status.toLowerCase().includes("lobby")
+                      ? "bg-blue-100 text-blue-800"
+                      : room.status.toLowerCase().includes("completed")
+                      ? "bg-gray-200 text-gray-800"
+                      : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
                   {room.status}
                 </span>
+              </td>
+              <td className="px-6 py-4 text-gray-600">{room.createdAt}</td>
+              <td className="px-6 py-4 text-gray-600">
+                {room.gameMode === "bot" ? (room.aiDifficulty || "N/A") : "-"}
               </td>
               <td className="px-6 py-4">
                 <button
