@@ -118,12 +118,19 @@ export default function RegisterPlayerForm({ onClose, onSuccess }: RegisterPlaye
 
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Country</span>
-            <input
+            <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
               className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-              placeholder="Country"
-            />
+            >
+              <option value="">Select a country</option>
+              <option value="United States">United States</option>
+              <option value="Canada">Canada</option>
+              <option value="United Kingdom">United Kingdom</option>
+              <option value="Australia">Australia</option>
+              <option value="Mexico">Mexico</option>
+              <option value="Vietnam">Vietnam</option>
+            </select>
           </label>
 
           <label className="block">
