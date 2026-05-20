@@ -15,9 +15,7 @@ export default function Home() {
             <MatchType type={"bot"} />
             <MatchType type={"local"} />
           </div>
-          <div className={"grid grid-cols-2 md:grid-cols-4 gap-4 py-10"}>
-            <DraftGrid size={3}  subtitle={"Quick Session"} />
-            <DraftGrid size={5}  subtitle={"Classic Session"} />
+          <div className={"grid grid-cols-2 md:grid-cols-2 gap-10 py-10"}>
             <DraftGrid size={10} subtitle={"Standard Session"} />
             <DraftGrid size={15} subtitle={"Large Session"} />
           </div>

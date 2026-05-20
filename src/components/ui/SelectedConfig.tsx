@@ -40,8 +40,6 @@ const MARKER_PAIRS: Record<string, string> = {
 }
 
 const GRID_SIZES: { value: number; label: string }[] = [
-  { value: 3,  label: "Quick" },
-  { value: 5,  label: "Classic" },
   { value: 10, label: "Standard" },
   { value: 15, label: "Large" },
 ]
