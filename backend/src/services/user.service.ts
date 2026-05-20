@@ -57,11 +57,8 @@ class UserService {
       throw new Error('Username already taken');
     }
 
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
-
     const user = await userRepository.create({
       ...userData,
-      password: hashedPassword,
       currentSubscription: userData.currentSubscription ?? null,
     });
 
@@ -138,7 +135,7 @@ class UserService {
   }
 
   async deactivateUser(userId: string): Promise<IUser> {
-    const user = await userRepository.update(userId, { status: 'deactive' });
+    const user = await userRepository.update(userId, { status: 'deactive', isActive: false });
     if (!user) {
       throw new Error('User not found');
     }
@@ -146,7 +143,7 @@ class UserService {
   }
 
   async reactivateUser(userId: string): Promise<IUser> {
-    const user = await userRepository.update(userId, { status: 'active' });
+    const user = await userRepository.update(userId, { status: 'active', isActive: true });
     if (!user) { 
       throw new Error('User not found');
     }

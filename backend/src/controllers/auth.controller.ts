@@ -25,6 +25,7 @@ class AuthController {
     }
   }
 
+  /*
   async logout(req: Request, res: Response): Promise<void> {
     try {
       const authHeader = req.headers.authorization;
@@ -42,6 +43,7 @@ class AuthController {
       res.status(400).json({ message });
     }
   }
+  */
 }
 
 export default new AuthController();

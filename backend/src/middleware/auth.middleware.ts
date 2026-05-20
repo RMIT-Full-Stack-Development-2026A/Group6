@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/user.repository';
-import { isTokenBlacklisted } from '../services/auth.service';
+// import { isTokenBlacklisted } from '../services/auth.service';
 
 interface JwtPayload {
   id: string;
@@ -40,7 +40,7 @@ const authMiddleware = async (
       return;
     }
 
-    if (await isTokenBlacklisted(token)) { 
+    /* if (await isTokenBlacklisted(token)) { 
       res.status(401).json({
         success: false,
         message: 'Token has been invalidated. Please login again.',
@@ -48,6 +48,7 @@ const authMiddleware = async (
       return;
     }
 
+    */
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
 
     const user = await userRepository.findById(decoded.id);
@@ -122,10 +123,11 @@ export const optionalAuth = async (
       return next();
     }
 
-    if (await isTokenBlacklisted(token)) { 
+    /* if (await isTokenBlacklisted(token)) { 
       return next();
     }
 
+    */
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
     const user = await userRepository.findById(decoded.id);
 
