@@ -100,7 +100,7 @@ export default function RegisterPlayerForm({ onClose, onSuccess }: RegisterPlaye
             <input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
               placeholder="Enter username"
             />
           </label>
@@ -111,7 +111,7 @@ export default function RegisterPlayerForm({ onClose, onSuccess }: RegisterPlaye
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
               placeholder="player@example.com"
             />
           </label>
@@ -121,7 +121,7 @@ export default function RegisterPlayerForm({ onClose, onSuccess }: RegisterPlaye
             <input
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
               placeholder="Country"
             />
           </label>
@@ -132,7 +132,7 @@ export default function RegisterPlayerForm({ onClose, onSuccess }: RegisterPlaye
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
               placeholder="Enter password"
             />
           </label>
@@ -143,7 +143,7 @@ export default function RegisterPlayerForm({ onClose, onSuccess }: RegisterPlaye
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
               placeholder="Repeat password"
             />
           </label>
