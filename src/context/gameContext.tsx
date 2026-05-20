@@ -66,7 +66,7 @@ function colToAlpha(col: number): string {
 }
 
 function toAlgebraic(row: number, col: number, gridSize: number): string {
-  return `${colToAlpha(col)}${gridSize - row}`
+  return `${colToAlpha(col)}${row + 1}`
 }
 
 function toBotNotation(row: number, col: number): string {
