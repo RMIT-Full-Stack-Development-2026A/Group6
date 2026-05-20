@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "Subscription",
-  description: "Subscription page",
+  title: "Privacy Policy",
+  description: "Privacy Policy",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return <>{children}</>;
 }

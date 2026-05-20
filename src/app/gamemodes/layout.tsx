@@ -5,10 +5,14 @@ export const metadata: Metadata = {
   description: "Select your gamemode",
 };
 
-export default function RootLayout({
+export default function GameModesLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+    </>
+  );
 }

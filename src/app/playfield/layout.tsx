@@ -5,10 +5,14 @@ export const metadata: Metadata = {
   description: "Match in progress",
 };
 
-export default function RootLayout({
+export default function PlayfieldLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+    </>
+  );
 }
