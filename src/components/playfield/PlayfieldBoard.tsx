@@ -60,7 +60,6 @@ export default function PlayfieldBoard() {
   const tileSize = gridSize <= 10 ? 52 : 36
   const gap = 4
   const boardPx = gridSize * tileSize + (gridSize - 1) * gap + 2
-
   return (
     <div className={`rounded-xl shadow-md p-4 ${style.wrapper}`}>
 
@@ -86,7 +85,7 @@ export default function PlayfieldBoard() {
               className={`flex items-center justify-end pr-1 text-[10px] font-mono select-none ${style.label}`}
               style={{ height: tileSize, width: 18 }}
             >
-              {gridSize - r}
+              {r + 1}
             </div>
           ))}
         </div>
