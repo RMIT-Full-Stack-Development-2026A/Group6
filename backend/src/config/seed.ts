@@ -12,24 +12,19 @@ const seedDatabase = async (): Promise<void> => {
   try {
     const mongoURI = process.env.MONGODB_URI as string;
 
-    console.log(' Connecting to MongoDB...');
+    console.log('Connecting to MongoDB...');
     await mongoose.connect(mongoURI);
-    console.log(' Connected to MongoDB');
+    console.log('✅ Connected to MongoDB');
 
-    // ─── Clear existing data ────────────────────────────────────────
-    console.log(' Clearing existing data...');
-    await Promise.all([
-      Subscription.deleteMany({}),
-      UserSubscription.deleteMany({}),
-      PlayerStats.deleteMany({}),
-      Game.deleteMany({}),
-      User.deleteMany({}),
-    ]);
+    console.log('Seeding subscription plans...');
+    const existingFree = await Subscription.findOne({ name: 'Free' });
+    const existingPremium = await Subscription.findOne({ name: 'Premium' });
 
-    // ─── 1. Seed Subscription Plans ────────────────────────────────
-    console.log(' Seeding subscription plans...');
-    const [, premiumPlan] = await Subscription.insertMany([
-      {
+    let freePlan = existingFree;
+    let premiumPlan = existingPremium;
+
+    if (!existingFree) {
+      freePlan = await Subscription.create({
         name: 'Free',
         description: 'Perfect for casual players who want to enjoy the game',
         price: 0,
@@ -52,8 +47,14 @@ const seedDatabase = async (): Promise<void> => {
         ],
         isActive: true,
         displayOrder: 1,
-      },
-      {
+      });
+      console.log('   ✓ Created Free plan');
+    } else {
+      console.log('   ℹ Free plan already exists, skipping');
+    }
+
+    if (!existingPremium) {
+      premiumPlan = await Subscription.create({
         name: 'Premium',
         description: 'For serious players who want the ultimate experience',
         price: 10,
@@ -80,255 +81,346 @@ const seedDatabase = async (): Promise<void> => {
         ],
         isActive: true,
         displayOrder: 2,
-      },
-    ]);
-    console.log('   Created 2 subscription plans');
+      });
+      console.log('   ✓ Created Premium plan');
+    } else {
+      console.log('   ℹ Premium plan already exists, skipping');
+    }
 
-    // ─── 2. Seed Users ──────────────────────────────────────────────
-    // NOTE: passwords are hashed by the pre('save') hook in user.model.ts
-    console.log(' Seeding users...');
+    console.log('Seeding demo users...');
 
-    const admin = await User.create({
-      username: 'admin',
-      email: 'admin@tictactoang.com',
-      password: 'Admin@123',
-      country: 'VN',
-      role: 'admin',
-      profile: {
-        firstName: 'System',
-        lastName: 'Admin',
-        avatar: '',
-        bio: 'TicTacToang Platform Administrator',
-      },
-      isActive: true,
-      isEmailVerified: true,
-    });
+    const existingAdmin = await User.findOne({ email: 'admin@tictactoang.com' });
+    let admin = existingAdmin;
+    if (!existingAdmin) {
+      admin = await User.create({
+        username: 'admin',
+        email: 'admin@tictactoang.com',
+        password: 'Admin@123',
+        country: 'VN',
+        role: 'admin',
+        profile: {
+          firstName: 'System',
+          lastName: 'Admin',
+          avatar: '',
+          bio: 'TicTacToang Platform Administrator',
+        },
+        isActive: true,
+        isEmailVerified: true,
+      });
+      console.log('   ✓ Created admin user');
+    } else {
+      console.log('   ℹ Admin already exists, skipping');
+    }
 
-    // Player A — will be assigned Premium
-    const playerA = await User.create({
-      username: 'alice_pro',
-      email: 'alice@tictactoang.com',
-      password: 'Alice@123',
-      country: 'VN',
-      role: 'player',
-      profile: {
-        firstName: 'Alice',
-        lastName: 'Nguyen',
-        avatar: '',
-        bio: 'Competitive TicTacToe player',
-      },
-      isActive: true,
-      isEmailVerified: true,
-    });
+    const existingPlayerA = await User.findOne({ email: 'alice@tictactoang.com' });
+    let playerA = existingPlayerA;
+    if (!existingPlayerA) {
+      playerA = await User.create({
+        username: 'alice_pro',
+        email: 'alice@tictactoang.com',
+        password: 'Alice@123',
+        country: 'VN',
+        role: 'player',
+        profile: {
+          firstName: 'Alice',
+          lastName: 'Nguyen',
+          avatar: '',
+          bio: 'Competitive TicTacToe player',
+        },
+        isActive: true,
+        isEmailVerified: true,
+      });
+      console.log('   ✓ Created alice_pro user');
+    } else {
+      console.log('   ℹ alice_pro already exists, skipping');
+    }
 
-    // Player B — Standard (free)
-    const playerB = await User.create({
-      username: 'bob_standard',
-      email: 'bob@tictactoang.com',
-      password: 'Bob@1234',
-      country: 'VN',
-      role: 'player',
-      profile: {
-        firstName: 'Bob',
-        lastName: 'Tran',
-        avatar: '',
-        bio: 'Just here for fun!',
-      },
-      isActive: true,
-      isEmailVerified: true,
-    });
+    const existingPlayerB = await User.findOne({ email: 'bob@tictactoang.com' });
+    let playerB = existingPlayerB;
+    if (!existingPlayerB) {
+      playerB = await User.create({
+        username: 'bob_standard',
+        email: 'bob@tictactoang.com',
+        password: 'Bob@1234',
+        country: 'VN',
+        role: 'player',
+        profile: {
+          firstName: 'Bob',
+          lastName: 'Tran',
+          avatar: '',
+          bio: 'Just here for fun!',
+        },
+        isActive: true,
+        isEmailVerified: true,
+      });
+      console.log('   ✓ Created bob_standard user');
+    } else {
+      console.log('   ℹ bob_standard already exists, skipping');
+    }
 
-    // Extra deactivated player (for admin demo — req 6.2.1)
-    const playerDeactivated = await User.create({
-      username: 'charlie_inactive',
-      email: 'charlie@tictactoang.com',
-      password: 'Charlie@123',
-      country: 'US',
-      role: 'player',
-      profile: {
-        firstName: 'Charlie',
-        lastName: 'Le',
-        avatar: '',
-        bio: '',
-      },
-      isActive: false,
-      isEmailVerified: true,
-    });
+    const existingPlayerDeactivated = await User.findOne({ email: 'charlie@tictactoang.com' });
+    let playerDeactivated = existingPlayerDeactivated;
+    if (!existingPlayerDeactivated) {
+      playerDeactivated = await User.create({
+        username: 'charlie_inactive',
+        email: 'charlie@tictactoang.com',
+        password: 'Charlie@123',
+        country: 'US',
+        role: 'player',
+        profile: {
+          firstName: 'Charlie',
+          lastName: 'Le',
+          avatar: '',
+          bio: '',
+        },
+        isActive: false,
+        isEmailVerified: true,
+      });
+      console.log('   ✓ Created charlie_inactive user');
+    } else {
+      console.log('   ℹ charlie_inactive already exists, skipping');
+    }
 
-    console.log('   Created 4 users (admin, playerA premium, playerB standard, 1 deactivated)');
+    if (!admin || !playerA || !playerB || !playerDeactivated) {
+      throw new Error('Failed to create or find required users');
+    }
 
-    // ─── 3. Premium Subscription for Player A ──────────────────────
-    console.log(' Assigning Premium subscription to Player A...');
-    const now = new Date();
-    const nextMonth = new Date(now);
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    console.log('Checking Premium subscription for Player A...');
+    const existingSub = await UserSubscription.findOne({ user: playerA._id });
+    if (!existingSub && premiumPlan) {
+      const now = new Date();
+      const nextMonth = new Date(now);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-    const aliceSub = await UserSubscription.create({
-      user: playerA._id,
-      subscription: premiumPlan._id,
-      status: 'active',
-      startDate: now,
-      endDate: nextMonth,
-      autoRenew: true,
-      paymentMethod: 'wallet',
-      transactionId: `TXN-ALICE-${Date.now()}`,
-    });
+      const aliceSub = await UserSubscription.create({
+        user: playerA._id,
+        subscription: premiumPlan._id,
+        status: 'active',
+        startDate: now,
+        endDate: nextMonth,
+        autoRenew: true,
+        paymentMethod: 'wallet',
+        transactionId: `TXN-ALICE-${Date.now()}`,
+      });
 
-    await User.findByIdAndUpdate(playerA._id, { currentSubscription: aliceSub._id });
-    console.log('   Premium subscription active for alice_pro');
+      await User.findByIdAndUpdate(playerA._id, { currentSubscription: aliceSub._id });
+      console.log('   ✓ Premium subscription created for alice_pro');
+    } else {
+      console.log('   ℹ alice_pro already has a subscription, skipping');
+    }
 
-    // ─── 4. Seed Game Sessions ──────────────────────────────────────
-    console.log(' Seeding game sessions...');
-
-    const emptyBoard = (size: number) =>
-      Array(size).fill(null).map(() => Array(size).fill(null));
-
-    // Game 1: Alice vs Bob (local, Alice wins)
-    await Game.create({
-      gameMode: 'local',
-      gridSize: 10,
-      players: { playerX: playerA._id, playerO: playerB._id },
-      currentTurn: 'O',
-      boardState: emptyBoard(10),
-      status: 'completed',
-      winner: playerA._id,
-      result: 'X',
-      startedAt: new Date(Date.now() - 3600_000 * 24 * 5),
-      completedAt: new Date(Date.now() - 3600_000 * 24 * 5 + 900_000),
-      isRanked: false,
-      moves: [
-        { player: playerA._id, position: { row: 0, col: 0 }, symbol: 'X', timestamp: new Date() },
-        { player: playerB._id, position: { row: 1, col: 1 }, symbol: 'O', timestamp: new Date() },
+    console.log('🎮 Checking demo game sessions...');
+    const existingGames = await Game.countDocuments({
+      $or: [
+        { 'players.playerX': playerA._id },
+        { 'players.playerO': playerA._id },
+        { 'players.playerX': playerB._id },
+        { 'players.playerO': playerB._id },
       ],
     });
 
-    // Game 2: Bob vs AI (bot mode, AI wins)
-    await Game.create({
-      gameMode: 'bot',
-      gridSize: 10,
-      players: { playerX: playerB._id, playerO: null },
-      currentTurn: 'X',
-      boardState: emptyBoard(10),
-      status: 'completed',
-      winner: 'AI',
-      result: 'O',
-      aiDifficulty: 'medium',
-      startedAt: new Date(Date.now() - 3600_000 * 24 * 3),
-      completedAt: new Date(Date.now() - 3600_000 * 24 * 3 + 600_000),
-      isRanked: false,
-      moves: [],
-    });
+    if (existingGames === 0) {
+      const emptyBoard = (size: number) =>
+        Array(size).fill(null).map(() => Array(size).fill(null));
 
-    // Game 3: Alice vs Bob (online, abandoned)
-    await Game.create({
-      gameMode: 'online',
-      gridSize: 10,
-      players: { playerX: playerA._id, playerO: playerB._id },
-      currentTurn: 'X',
-      boardState: emptyBoard(10),
-      status: 'abandoned',
-      winner: null,
-      result: null,
-      roomCode: 'ROOM-DEMO-001',
-      startedAt: new Date(Date.now() - 3600_000 * 24 * 2),
-      completedAt: new Date(Date.now() - 3600_000 * 24 * 2 + 300_000),
-      isRanked: false,
-      moves: [],
-    });
+      await Game.create({
+        gameMode: 'local',
+        gridSize: 10,
+        players: { playerX: playerA._id, playerO: playerB._id },
+        currentTurn: 'O',
+        boardState: emptyBoard(10),
+        status: 'completed',
+        winner: playerA._id,
+        result: 'X',
+        startedAt: new Date(Date.now() - 3600_000 * 24 * 5),
+        completedAt: new Date(Date.now() - 3600_000 * 24 * 5 + 900_000),
+        isRanked: false,
+        moves: [
+          { player: playerA._id, position: { row: 0, col: 0 }, symbol: 'X', timestamp: new Date() },
+          { player: playerB._id, position: { row: 1, col: 1 }, symbol: 'O', timestamp: new Date() },
+        ],
+      });
 
-    // Game 4: Alice vs Bob (local, Bob wins)
-    const game4 = await Game.create({
-      gameMode: 'local',
-      gridSize: 15,
-      players: { playerX: playerA._id, playerO: playerB._id },
-      currentTurn: 'X',
-      boardState: emptyBoard(15),
-      status: 'completed',
-      winner: playerB._id,
-      result: 'O',
-      startedAt: new Date(Date.now() - 3600_000 * 24 * 1),
-      completedAt: new Date(Date.now() - 3600_000 * 24 * 1 + 1200_000),
-      isRanked: false,
-      moves: [],
-    });
+      await Game.create({
+        gameMode: 'bot',
+        gridSize: 10,
+        players: { playerX: playerB._id, playerO: null },
+        currentTurn: 'X',
+        boardState: emptyBoard(10),
+        status: 'completed',
+        winner: 'AI',
+        result: 'O',
+        aiDifficulty: 'medium',
+        startedAt: new Date(Date.now() - 3600_000 * 24 * 3),
+        completedAt: new Date(Date.now() - 3600_000 * 24 * 3 + 600_000),
+        isRanked: false,
+        moves: [],
+      });
 
-    console.log('   Created 4 game sessions');
+      await Game.create({
+        gameMode: 'online',
+        gridSize: 10,
+        players: { playerX: playerA._id, playerO: playerB._id },
+        currentTurn: 'X',
+        boardState: emptyBoard(10),
+        status: 'abandoned',
+        winner: null,
+        result: null,
+        roomCode: 'ROOM-DEMO-001',
+        startedAt: new Date(Date.now() - 3600_000 * 24 * 2),
+        completedAt: new Date(Date.now() - 3600_000 * 24 * 2 + 300_000),
+        isRanked: false,
+        moves: [],
+      });
 
-    // ─── 5. Seed Player Stats ───────────────────────────────────────
-    console.log(' Seeding player stats...');
+      await Game.create({
+        gameMode: 'local',
+        gridSize: 15,
+        players: { playerX: playerA._id, playerO: playerB._id },
+        currentTurn: 'X',
+        boardState: emptyBoard(15),
+        status: 'completed',
+        winner: playerB._id,
+        result: 'O',
+        startedAt: new Date(Date.now() - 3600_000 * 24 * 1),
+        completedAt: new Date(Date.now() - 3600_000 * 24 * 1 + 1200_000),
+        isRanked: false,
+        moves: [],
+      });
 
-    await PlayerStats.create({
-      user: admin._id,
-      totalGames: 0, wins: 0, losses: 0, draws: 0, winRate: 0,
-      stats: {
-        local: { games: 0, wins: 0, losses: 0, draws: 0 },
-        online: { games: 0, wins: 0, losses: 0, draws: 0, ranking: 0 },
-        bot: { games: 0, wins: 0, losses: 0, draws: 0 },
-      },
-      currentWinStreak: 0, bestWinStreak: 0, currentLossStreak: 0,
-      lastPlayed: null,
-    });
+      console.log('   ✓ Created 4 demo game sessions');
+    } else {
+      console.log('   ℹ Demo games already exist, skipping');
+    }
 
-    await PlayerStats.create({
-      user: playerA._id,
-      totalGames: 3, wins: 1, losses: 1, draws: 1, winRate: 33.33,
-      stats: {
-        local: { games: 2, wins: 1, losses: 1, draws: 0 },
-        online: { games: 1, wins: 0, losses: 0, draws: 1, ranking: 1200 },
-        bot: { games: 0, wins: 0, losses: 0, draws: 0 },
-      },
-      currentWinStreak: 0, bestWinStreak: 1, currentLossStreak: 1,
-      favoriteGridSize: 10,
-      totalPlayTime: 35,
-      lastPlayed: game4.completedAt,
-    });
+    console.log('Checking player stats...');
 
-    await PlayerStats.create({
-      user: playerB._id,
-      totalGames: 4, wins: 2, losses: 1, draws: 1, winRate: 50,
-      stats: {
-        local: { games: 2, wins: 1, losses: 1, draws: 0 },
-        online: { games: 1, wins: 0, losses: 0, draws: 1, ranking: 1050 },
-        bot: { games: 1, wins: 0, losses: 1, draws: 0 },
-      },
-      currentWinStreak: 1, bestWinStreak: 1, currentLossStreak: 0,
-      favoriteGridSize: 10,
-      totalPlayTime: 42,
-      lastPlayed: game4.completedAt,
-    });
+    const existingAdminStats = await PlayerStats.findOne({ user: admin._id });
+    if (!existingAdminStats) {
+      await PlayerStats.create({
+        user: admin._id,
+        totalGames: 0,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        winRate: 0,
+        stats: {
+          local: { games: 0, wins: 0, losses: 0, draws: 0 },
+          online: { games: 0, wins: 0, losses: 0, draws: 0, ranking: 0 },
+          bot: { games: 0, wins: 0, losses: 0, draws: 0 },
+        },
+        currentWinStreak: 0,
+        bestWinStreak: 0,
+        currentLossStreak: 0,
+        lastPlayed: null,
+      });
+      console.log('✓ Created stats for admin');
+    }
 
-    await PlayerStats.create({
+    const existingPlayerAStats = await PlayerStats.findOne({ user: playerA._id });
+    if (!existingPlayerAStats) {
+      const game4CompletedAt = await Game.findOne({
+        'players.playerX': playerA._id,
+        status: 'completed',
+      })
+        .sort({ completedAt: -1 })
+        .select('completedAt')
+        .lean();
+
+      await PlayerStats.create({
+        user: playerA._id,
+        totalGames: 3,
+        wins: 1,
+        losses: 1,
+        draws: 1,
+        winRate: 33.33,
+        stats: {
+          local: { games: 2, wins: 1, losses: 1, draws: 0 },
+          online: { games: 1, wins: 0, losses: 0, draws: 1, ranking: 1200 },
+          bot: { games: 0, wins: 0, losses: 0, draws: 0 },
+        },
+        currentWinStreak: 0,
+        bestWinStreak: 1,
+        currentLossStreak: 1,
+        favoriteGridSize: 10,
+        totalPlayTime: 35,
+        lastPlayed: game4CompletedAt?.completedAt || null,
+      });
+      console.log('   ✓ Created stats for alice_pro');
+    }
+
+    const existingPlayerBStats = await PlayerStats.findOne({ user: playerB._id });
+    if (!existingPlayerBStats) {
+      const game4CompletedAt = await Game.findOne({
+        'players.playerO': playerB._id,
+        status: 'completed',
+      })
+        .sort({ completedAt: -1 })
+        .select('completedAt')
+        .lean();
+
+      await PlayerStats.create({
+        user: playerB._id,
+        totalGames: 4,
+        wins: 2,
+        losses: 1,
+        draws: 1,
+        winRate: 50,
+        stats: {
+          local: { games: 2, wins: 1, losses: 1, draws: 0 },
+          online: { games: 1, wins: 0, losses: 0, draws: 1, ranking: 1050 },
+          bot: { games: 1, wins: 0, losses: 1, draws: 0 },
+        },
+        currentWinStreak: 1,
+        bestWinStreak: 1,
+        currentLossStreak: 0,
+        favoriteGridSize: 10,
+        totalPlayTime: 42,
+        lastPlayed: game4CompletedAt?.completedAt || null,
+      });
+      console.log('   ✓ Created stats for bob_standard');
+    }
+
+    const existingPlayerDeactivatedStats = await PlayerStats.findOne({
       user: playerDeactivated._id,
-      totalGames: 0, wins: 0, losses: 0, draws: 0, winRate: 0,
-      stats: {
-        local: { games: 0, wins: 0, losses: 0, draws: 0 },
-        online: { games: 0, wins: 0, losses: 0, draws: 0, ranking: 0 },
-        bot: { games: 0, wins: 0, losses: 0, draws: 0 },
-      },
-      currentWinStreak: 0, bestWinStreak: 0, currentLossStreak: 0,
-      lastPlayed: null,
     });
+    if (!existingPlayerDeactivatedStats) {
+      await PlayerStats.create({
+        user: playerDeactivated._id,
+        totalGames: 0,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        winRate: 0,
+        stats: {
+          local: { games: 0, wins: 0, losses: 0, draws: 0 },
+          online: { games: 0, wins: 0, losses: 0, draws: 0, ranking: 0 },
+          bot: { games: 0, wins: 0, losses: 0, draws: 0 },
+        },
+        currentWinStreak: 0,
+        bestWinStreak: 0,
+        currentLossStreak: 0,
+        lastPlayed: null,
+      });
+      console.log('   ✓ Created stats for charlie_inactive');
+    }
 
-    console.log('   Created player stats for all users');
-
-    // ─── Summary ────────────────────────────────────────────────────
-    console.log('\n Database seeding completed!');
+    console.log('\n✅ Database seeding completed!');
     console.log('─────────────────────────────────────────');
-    console.log(' DEMO ACCOUNTS:');
+    console.log('DEMO ACCOUNTS:');
     console.log('  Admin    → admin@tictactoang.com     / Admin@123');
     console.log('  Player A → alice@tictactoang.com     / Alice@123  (Premium)');
     console.log('  Player B → bob@tictactoang.com       / Bob@1234   (Free)');
     console.log('  Inactive → charlie@tictactoang.com   / Charlie@123 (Deactivated)');
     console.log('─────────────────────────────────────────');
-    console.log(' Game sessions: 4 (1 abandoned, 2 local, 1 bot)');
-    console.log(' Subscriptions: Free ($0/yr) + Premium ($10/mo)');
+    console.log('Subscriptions: Free ($0/yr) + Premium ($10/mo)');
     console.log('─────────────────────────────────────────');
 
     await mongoose.disconnect();
-    console.log(' Disconnected from MongoDB');
+    console.log('Disconnected from MongoDB');
     process.exit(0);
   } catch (error) {
-    console.error(' Error seeding database:', error);
+    console.error('Error seeding database:', error);
     await mongoose.disconnect();
     process.exit(1);
   }
