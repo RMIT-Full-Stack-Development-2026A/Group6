@@ -53,7 +53,11 @@ function PlayerAvatar({
 
   return (
     <span className={`w-9 h-9 rounded-full ${bgClass} flex items-center justify-center ${colorClass} font-bold text-lg flex-shrink-0`}>
-      {marker}
+      {marker && marker.toLowerCase().endsWith('.png') ? (
+        <img src={marker.startsWith('/') ? marker : `/marker/${marker}`} alt={name} className="w-6 h-6 object-contain" />
+      ) : (
+        marker
+      )}
     </span>
   )
 }
@@ -137,7 +141,11 @@ export default function PlayfieldSidebar() {
           ) : (
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold text-gray-800">{currentPlayerName}</span>
-              <span className="text-sm text-gray-500">({currentMarker})</span>
+              <span className="text-sm text-gray-500">({currentMarker && currentMarker.toLowerCase().endsWith('.png') ? (
+                <img src={currentMarker.startsWith('/') ? currentMarker : `/marker/${currentMarker}`} alt="marker" className="inline-block w-4 h-4 align-middle" />
+              ) : (
+                currentMarker
+              )})</span>
             </div>
           )
         ) : status === "abandoned" ? (
@@ -215,7 +223,11 @@ export default function PlayfieldSidebar() {
                       : "bg-emerald-100 text-emerald-700"
                   }`}
                 >
-                  {m.symbol === "X" ? markerX : markerO}
+                  { (m.symbol === "X" ? markerX : markerO) && (m.symbol === "X" ? markerX : markerO).toLowerCase().endsWith('.png') ? (
+                    <img src={(m.symbol === "X" ? markerX : markerO).startsWith('/') ? (m.symbol === "X" ? markerX : markerO) : `/marker/${(m.symbol === "X" ? markerX : markerO)}`} alt="m" className="w-4 h-4 object-contain" />
+                  ) : (
+                    (m.symbol === "X" ? markerX : markerO)
+                  )}
                 </span>
                 <span className="font-mono">{m.algebraic}</span>
                 <span className="text-xs text-gray-400 ml-auto">

@@ -22,17 +22,17 @@ const BOARD_STYLES: { value: BoardStyle; label: string; preview: string }[] = [
 ]
 
 const MARKERS: { value: string; label: string }[] = [
-  { value: "X",  label: "X / O  (Default)" },
-  { value: "♦",  label: "♦ / ♣  (Suits)" },
-  { value: "★",  label: "★ / ☆  (Stars)" },
-  { value: "▲",  label: "▲ / ▼  (Arrows)" },
-  { value: "🌙", label: "🌙 / ☀️  (Sky)" },
-  { value: "🐉", label: "🐉 / 🦅  (Beasts)" },
+  { value: "X",      label: "X / O  (Default)" },
+  { value: "maimai", label: "Suits (maimai)" },
+  { value: "★",      label: "★ / ☆  (Stars)" },
+  { value: "▲",      label: "▲ / ▼  (Arrows)" },
+  { value: "🌙",     label: "🌙 / ☀️  (Sky)" },
+  { value: "🐉",     label: "🐉 / 🦅  (Beasts)" },
 ]
 
 const MARKER_PAIRS: Record<string, string> = {
   "X":  "O",
-  "♦":  "♣",
+  "maimai": "break.png",
   "★":  "☆",
   "▲":  "▼",
   "🌙": "☀️",
@@ -77,8 +77,9 @@ export default function SelectedConfig() {
     }
   }, [selection.gridSize])
 
-  const markerX = markerKey
-  const markerO = MARKER_PAIRS[markerKey] ?? "O"
+  const isMaimai = markerKey === "maimai"
+  const markerX = isMaimai ? "star.png" : markerKey
+  const markerO = isMaimai ? "break.png" : (MARKER_PAIRS[markerKey] ?? "O")
   const modeName = mode ? matchtype.matchtype[mode]?.name || mode : ""
   const canPlay = !!mode && !!selectedSize && mode !== "online"
 
@@ -192,7 +193,11 @@ export default function SelectedConfig() {
         <div className="flex flex-col gap-1">
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Player 1 Name</label>
           <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50">
-            <span className="text-rose-600 font-bold text-lg w-6 text-center">{markerX}</span>
+            {markerKey === "maimai" ? (
+              <img src="/marker/star.png" alt="X" className="w-6 h-6" />
+            ) : (
+              <span className="text-rose-600 font-bold text-lg w-6 text-center">{markerX}</span>
+            )}
             <input
               type="text"
               value={p1Name}
@@ -207,7 +212,11 @@ export default function SelectedConfig() {
             {mode === "bot" ? "Bot Name (auto)" : "Player 2 Name"}
           </label>
           <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50">
-            <span className="text-emerald-700 font-bold text-lg w-6 text-center">{markerO}</span>
+            {markerKey === "maimai" ? (
+              <img src="/marker/break.png" alt="O" className="w-6 h-6" />
+            ) : (
+              <span className="text-emerald-700 font-bold text-lg w-6 text-center">{markerO}</span>
+            )}
             <input
               type="text"
               value={p2Name}

@@ -1,6 +1,16 @@
 "use client"
 
 import React, { useMemo } from "react"
+
+function renderMarker(marker: string, size: number) {
+  if (!marker) return null
+  const isImage = marker.toLowerCase().endsWith(".png") || marker.startsWith("/")
+  if (isImage) {
+    const src = marker.startsWith("/") ? marker : `/marker/${marker}`
+    return <img src={src} alt="marker" style={{ width: size * 0.6, height: size * 0.6, objectFit: "contain" }} />
+  }
+  return marker
+}
 import { useGame } from "@/context/gameContext"
 
 
@@ -121,18 +131,18 @@ export default function PlayfieldBoard() {
                   style={{ width: tileSize, height: tileSize }}
                   title={`${colToAlpha(ci)}${gridSize - ri}`}
                 >
-                  {marker && (
-                    <span
-                      className={[
-                        "leading-none transition-all",
-                        cell === "X" ? "text-rose-600" : "text-emerald-700",
-                        isWinCell ? "scale-110" : "",
-                      ].join(" ")}
-                      style={{ fontSize: tileSize * 0.42 }}
-                    >
-                      {marker}
-                    </span>
-                  )}
+                      {marker && (
+                        <span
+                          className={[
+                            "leading-none transition-all flex items-center justify-center",
+                            cell === "X" ? "text-rose-600" : "text-emerald-700",
+                            isWinCell ? "scale-110" : "",
+                          ].join(" ")}
+                          style={{ fontSize: tileSize * 0.42 }}
+                        >
+                          {renderMarker(marker, tileSize)}
+                        </span>
+                      )}
                 </button>
               )
             })

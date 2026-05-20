@@ -3,6 +3,16 @@
 import React, { useEffect, useState } from "react"
 import { useGame } from "@/context/gameContext"
 
+function renderWinnerMarker(marker: string) {
+  if (!marker) return null
+  const isImage = marker.toLowerCase().endsWith(".png") || marker.startsWith("/")
+  if (isImage) {
+    const src = marker.startsWith("/") ? marker : `/marker/${marker}`
+    return <img src={src} alt="winner" className="w-12 h-12 object-contain" />
+  }
+  return marker
+}
+
 export default function WinnerOverlay() {
   const { gameState, resetGame } = useGame()
   const { status, winner, config } = gameState
@@ -74,7 +84,7 @@ export default function WinnerOverlay() {
             }`}
             style={{ animation: "spinIn 0.5s ease-out" }}
           >
-            {winnerMarker}
+            {renderWinnerMarker(winnerMarker)}
           </div>
         )}
 
