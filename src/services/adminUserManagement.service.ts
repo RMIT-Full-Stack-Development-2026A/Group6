@@ -22,10 +22,14 @@ function getAuthHeaders() {
     "Content-Type": "application/json",
   };
 
-  const token = localStorage.getItem("authToken");
+  const token = sessionStorage.getItem("authToken");
+  if (!token) {
+    throw new Error("No auth token found. Please login again.");
+  }
+
   return {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    Authorization: `Bearer ${token}`,
   };
 }
 
@@ -52,7 +56,10 @@ export async function getUsers(): Promise<User[]> {
       username: user.username,
       email: user.email,
       premiumStatus: user.currentSubscription ? "PREMIUM" : "STANDARD",
-      accountStatus: user.status === "active" ? "Active" : "Deactivated",
+      accountStatus:
+        user.isActive === true || user.status === "active"
+          ? "Active"
+          : "Deactivated",
     }));
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -84,7 +91,10 @@ export async function registerUser(userData: AdminCreateUserPayload): Promise<Us
       username: createdUser.username,
       email: createdUser.email,
       premiumStatus: createdUser.currentSubscription ? "PREMIUM" : "STANDARD",
-      accountStatus: createdUser.status === "active" ? "Active" : "Deactivated",
+      accountStatus:
+        createdUser.isActive === true || createdUser.status === "active"
+          ? "Active"
+          : "Deactivated",
     };
   } catch (error) {
     console.error("Error registering user:", error);
@@ -137,6 +147,10 @@ export async function reactivateUser(userId: string) {
 }
 
 export async function deleteUser(userId: string) {
+  if (!userId) {
+    throw new Error("Invalid user ID. Cannot delete user.");
+  }
+
   try {
     const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
       method: "DELETE",
@@ -144,7 +158,10 @@ export async function deleteUser(userId: string) {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to delete user: ${response.statusText}`);
+      const errorBody = await response.json().catch(() => null);
+      throw new Error(
+        errorBody?.message || `Failed to delete user: ${response.statusText}`
+      );
     }
 
     return await response.json();

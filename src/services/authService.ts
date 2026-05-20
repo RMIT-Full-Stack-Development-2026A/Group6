@@ -51,8 +51,8 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
 
   // Persist token and user info in browser storage for session handling.
   if (typeof window !== "undefined") {
-    localStorage.setItem("authToken", data.token)
-    localStorage.setItem("user", JSON.stringify(data.user))
+    sessionStorage.setItem("authToken", data.token)
+    sessionStorage.setItem("user", JSON.stringify(data.user))
   }
 
   return data
@@ -62,7 +62,7 @@ export async function logout(): Promise<void> {
   if (typeof window === "undefined") return
 
   // Notify backend to invalidate the current token, then clear local session storage.
-  const token = localStorage.getItem("authToken")
+  const token = sessionStorage.getItem("authToken")
   if (token) { 
     await fetch(`${API_BASE}/api/auth/logout`, {
       method: "POST",
@@ -73,8 +73,8 @@ export async function logout(): Promise<void> {
     }) 
   }
 
-  localStorage.removeItem("authToken")
-  localStorage.removeItem("user")
+  sessionStorage.removeItem("authToken")
+  sessionStorage.removeItem("user")
 }
 
 export async function signup(payload: SignupPayload): Promise<SignupResponse> {
@@ -94,8 +94,8 @@ export async function signup(payload: SignupPayload): Promise<SignupResponse> {
   }
 
   if (typeof window !== "undefined") {
-    localStorage.setItem("authToken", data.token)
-    localStorage.setItem("user", JSON.stringify(data.user)) 
+    sessionStorage.setItem("authToken", data.token)
+    sessionStorage.setItem("user", JSON.stringify(data.user)) 
   }
 
   return data

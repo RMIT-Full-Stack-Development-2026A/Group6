@@ -23,7 +23,7 @@ export default function PaymentPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken')
+    const token = sessionStorage.getItem('authToken')
     if (!token) {
       return
     }
@@ -70,7 +70,7 @@ export default function PaymentPage() {
     setCancelSuccess(null)
 
     try {
-      const token = localStorage.getItem('authToken')
+      const token = sessionStorage.getItem('authToken')
       if (!token) {
         setError('Please login first')
         setLoading(false)
@@ -112,7 +112,7 @@ export default function PaymentPage() {
     setSuccess(false)
 
     try {
-      const token = localStorage.getItem('authToken')
+      const token = sessionStorage.getItem('authToken')
       if (!token) {
         setError('Please login first')
         setLoading(false)

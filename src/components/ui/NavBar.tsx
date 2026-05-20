@@ -12,7 +12,7 @@ export default function NavBar() {
 	const isAdminPage = pathname?.startsWith("/admin")
 
 	useEffect(() => {
-		setIsSignedIn(Boolean(localStorage.getItem("authToken")))
+		setIsSignedIn(Boolean(sessionStorage.getItem("authToken")))
 	}, [])
 
 	if (isAdminPage) {

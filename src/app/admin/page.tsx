@@ -42,26 +42,46 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    const userData = typeof window !== "undefined" ? localStorage.getItem("user") : null;
-    if (!userData) {
-      router.push("/login");
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(userData);
-      if (parsed.role !== "admin") {
-        router.push("/"); 
-        return;
+    const checkAuth = (): boolean => {
+      const userData = typeof window !== "undefined" ? sessionStorage.getItem("user") : null;
+      if (!userData) {
+        router.push("/login");
+        return false;
       }
-    } catch {
-      router.push("/login");
+
+      try {
+        const parsed = JSON.parse(userData);
+        if (parsed.role !== "admin") {
+          router.push("/");
+          return false;
+        }
+
+        return true;
+      } catch {
+        router.push("/login");
+        return false;
+      }
+    };
+
+    if (!checkAuth()) {
       return;
     }
 
     loadData();
     setAuthChecked(true);
-  }, []);
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "authToken" || event.key === "user") {
+        if (!checkAuth()) {
+          return;
+        }
+        loadData();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [router]);
 
   const handleDeactivate = async (userId: string) => {
     try {
