@@ -23,7 +23,7 @@ const BOARD_STYLES: { value: BoardStyle; label: string; preview: string }[] = [
 
 const MARKERS: { value: string; label: string }[] = [
   { value: "X",      label: "X / O  (Default)" },
-  { value: "maimai", label: "Suits (maimai)" },
+  { value: "maimai", label: "Stars and BREaK (maimai)" },
   { value: "★",      label: "★ / ☆  (Stars)" },
   { value: "▲",      label: "▲ / ▼  (Arrows)" },
   { value: "🌙",     label: "🌙 / ☀️  (Sky)" },
