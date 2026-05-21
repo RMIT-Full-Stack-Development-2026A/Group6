@@ -37,7 +37,7 @@ class SubscriptionRepository {
   }
 
   // Find a plan by its display name, such as Free or Premium.
-  async findByName(name: string): Promise<ISubscription | null> {
+  async findByName(name: 'Free' | 'Premium'): Promise<ISubscription | null> {
     return await Subscription.findOne({ name });
   }
 
