@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'
+
 interface ProfileData {
   subscription: boolean
   subscriptionExpires: string | null
@@ -23,12 +25,12 @@ export default function PaymentPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const token = sessionStorage.getItem('authToken')
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('authToken') || sessionStorage.getItem('authToken')) : null
     if (!token) {
       return
     }
 
-    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/profile`, {
+    fetch(`${API_BASE}/api/users/profile`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -70,14 +72,14 @@ export default function PaymentPage() {
     setCancelSuccess(null)
 
     try {
-      const token = sessionStorage.getItem('authToken')
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
       if (!token) {
         setError('Please login first')
         setLoading(false)
         return
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/upgrade`, {
+      const response = await fetch(`${API_BASE}/api/payments/upgrade`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,14 +114,14 @@ export default function PaymentPage() {
     setSuccess(false)
 
     try {
-      const token = sessionStorage.getItem('authToken')
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
       if (!token) {
         setError('Please login first')
         setLoading(false)
         return
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/cancel`, {
+      const response = await fetch(`${API_BASE}/api/payments/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

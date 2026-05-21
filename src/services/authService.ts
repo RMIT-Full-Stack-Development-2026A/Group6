@@ -53,6 +53,8 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
   if (typeof window !== "undefined") {
     sessionStorage.setItem("authToken", data.token)
     sessionStorage.setItem("user", JSON.stringify(data.user))
+    localStorage.setItem("authToken", data.token)
+    localStorage.setItem("user", JSON.stringify(data.user))
   }
 
   return data
@@ -75,6 +77,8 @@ export async function logout(): Promise<void> {
 
   sessionStorage.removeItem("authToken")
   sessionStorage.removeItem("user")
+  localStorage.removeItem("authToken")
+  localStorage.removeItem("user")
 }
 
 export async function signup(payload: SignupPayload): Promise<SignupResponse> {
@@ -95,7 +99,9 @@ export async function signup(payload: SignupPayload): Promise<SignupResponse> {
 
   if (typeof window !== "undefined") {
     sessionStorage.setItem("authToken", data.token)
-    sessionStorage.setItem("user", JSON.stringify(data.user)) 
+    sessionStorage.setItem("user", JSON.stringify(data.user))
+    localStorage.setItem("authToken", data.token)
+    localStorage.setItem("user", JSON.stringify(data.user))
   }
 
   return data
