@@ -84,11 +84,16 @@ export async function registerUser(userData: AdminCreateUserPayload): Promise<Us
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to register user: ${response.statusText}`); 
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to register user: ${response.statusText}`); 
     }
 
     const result = await response.json();
     const createdUser = result?.data;
+
+    if (!createdUser) {
+      throw new Error("No user data returned from server");
+    }
 
     return {
       id: createdUser._id || createdUser.id,
@@ -101,15 +106,12 @@ export async function registerUser(userData: AdminCreateUserPayload): Promise<Us
           : "Deactivated",
     };
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to register user";
     console.error("Error registering user:", error);
-    throw error;
+    throw new Error(message);
   }
 }
 
-/**
- * Deactivate a user account
- * API Endpoint: PUT /api/users/:id/deactivate
- */
 export async function deactivateUser(userId: string) {
   try {
     const response = await fetch(`${API_BASE_URL}/api/users/${userId}/deactivate`, {
@@ -118,35 +120,37 @@ export async function deactivateUser(userId: string) {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to deactivate user: ${response.statusText}`); 
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to deactivate user: ${response.statusText}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+    return result?.data;
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to deactivate user";
     console.error("Error deactivating user:", error);
-    throw error;
+    throw new Error(message);
   }
 }
 
-/**
- * Reactivate a user account
- * API Endpoint: PUT /api/users/:id/reactivate
- */
 export async function reactivateUser(userId: string) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/reactivate`, { 
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/reactivate`, {
       method: "PUT",
       headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to reactivate user: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to reactivate user: ${response.statusText}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+    return result?.data;
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to reactivate user";
     console.error("Error reactivating user:", error);
-    throw error;
+    throw new Error(message);
   }
 }
 

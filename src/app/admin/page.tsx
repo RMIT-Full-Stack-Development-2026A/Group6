@@ -46,9 +46,7 @@ export default function AdminPage() {
               onRegister={openRegisterModal}
               onDeactivate={handleDeactivate}
               onReactivate={handleReactivate}
-              onDelete={handleDelete} 
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
+              onDelete={handleDelete}
             />
             {showRegisterModal && (
               <RegisterPlayerForm
@@ -65,7 +63,6 @@ export default function AdminPage() {
             searchQuery={roomSearchQuery}
             onSearchChange={setRoomSearchQuery}
             onFilter={toggleRoomFilters}
-            onNewRoom={() => console.log("Create new room")}
             onSpectate={handleSpectate}
             onClose={handleCloseRoom}
             showFilters={showRoomFilters}

@@ -1,9 +1,10 @@
+// restricts routes to users whose role matches the allowed list
 import { Request, Response, NextFunction } from 'express';
 
 /**
  * Role-based authorization middleware
  * Checks if authenticated user has required role(s)
- * Note: this middleware must be used after the authMiddleware
+ * Note: this middleware must be used after authMiddleware
  */
 const roleMiddleware = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -29,14 +30,12 @@ const roleMiddleware = (...allowedRoles: string[]) => {
 
 /**
  * Check if user is admin
- * Convenience middleware for admin-only routes
  */
 export const isAdmin = roleMiddleware('admin');
 
 /**
- * Check if user is either user or admin
- * Convenience middleware for authenticated user routes
+ * Check if user is a player or admin
  */
-export const isUser = roleMiddleware('player', 'admin');
+export const isPlayer = roleMiddleware('player', 'admin');
 
 export default roleMiddleware;

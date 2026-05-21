@@ -1,3 +1,4 @@
+// validates required env vars at startup and exports typed config
 import dotenv from 'dotenv';
 
 dotenv.config();

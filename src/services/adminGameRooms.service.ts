@@ -118,28 +118,22 @@ export async function getRooms(): Promise<Room[]> {
     const result = await response.json();
     const data = result?.data || [];
 
-    // Fetch username map for player ID lookup
-    const usernameMap = await getUsernameMap();
-
     return data.map((room: any) => {
-      // Extract player IDs from the players object structure
-      // Handle: players.playerX (ObjectId), players.player0 (null or ObjectId), etc.
-      const playerX = room.players?.playerX;
-      const player0 = room.players?.player0;
-
-      // Convert ObjectId to string if needed
-      const player1Id = playerX ? String(playerX) : null;
-      const player2Id = player0 ? String(player0) : null;
-
-      // Look up usernames from the map
+      // Extract player information - handle multiple API response formats
       let player1Label = "Unknown";
-      if (player1Id) {
-        player1Label = usernameMap.get(player1Id) || player1Id;
+      let player2Label: string | null = null;
+
+      // Try different structures for player data
+      const playerX = room.players?.playerX || room.playerX || room.player1;
+      const player0 = room.players?.player0 || room.player0 || room.player2;
+
+      // Extract username from player object or use as string
+      if (playerX) {
+        player1Label = normalizePlayerReference(playerX) || "Unknown";
       }
 
-      let player2Label: string | null = null;
-      if (player2Id) {
-        player2Label = usernameMap.get(player2Id) || player2Id;
+      if (player0) {
+        player2Label = normalizePlayerReference(player0);
       }
 
       const gameMode = room.gameMode || room.matchType || room.type || "Standard";

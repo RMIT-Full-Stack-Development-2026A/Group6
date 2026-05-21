@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { logout } from "@/services/authService"
 
@@ -9,10 +9,33 @@ export default function NavBar() {
 	const pathname = usePathname()
 	const router = useRouter()
 	const [isSignedIn, setIsSignedIn] = useState(false)
+	const [username, setUsername] = useState("")
+	const [dropdownOpen, setDropdownOpen] = useState(false)
+	const dropdownRef = useRef<HTMLDivElement>(null)
 	const isAdminPage = pathname?.startsWith("/admin")
 
 	useEffect(() => {
-		setIsSignedIn(Boolean(sessionStorage.getItem("authToken")))
+		const token = localStorage.getItem("authToken")
+		const user = localStorage.getItem("user")
+		if (token && user) {
+			setIsSignedIn(true)
+			try {
+				const parsed = JSON.parse(user)
+				setUsername(parsed.username || "")
+			} catch {
+				setUsername("")
+			}
+		}
+	}, [])
+
+	useEffect(() => {
+		function handleClickOutside(e: MouseEvent) {
+			if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+				setDropdownOpen(false)
+			}
+		}
+		document.addEventListener("mousedown", handleClickOutside)
+		return () => document.removeEventListener("mousedown", handleClickOutside)
 	}, [])
 
 	if (isAdminPage) {
@@ -23,7 +46,15 @@ export default function NavBar() {
 						<div className="shrink-0 text-xl font-semibold text-black">
 							<Link href="/">TicTacToang</Link>
 						</div>
-
+						<div className="flex-1 flex justify-center">
+							<div className="max-w-md w-full">
+								<input
+									type="text"
+									placeholder="Search users, rooms, settings..."
+									className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-700 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								/>
+							</div>
+						</div>
 						<div className="sm:hidden">
 							<button aria-label="Open menu" className="p-2 rounded-md text-gray-600 hover:bg-gray-100">☰</button>
 						</div>
@@ -34,13 +65,13 @@ export default function NavBar() {
 	}
 
 	const homeHref = isSignedIn ? "/home" : "/"
-	const profileHref = isSignedIn ? "/profile" : "/signup"
 	const pricingHref = isSignedIn ? "/subscription" : "/signup"
-	const hideSignupButton = pathname === "/home" || pathname === "/profile" || pathname?.startsWith("/profile/") || isSignedIn
 
 	async function handleLogout() {
 		await logout()
 		setIsSignedIn(false)
+		setUsername("")
+		setDropdownOpen(false)
 		router.push("/")
 	}
 
@@ -49,28 +80,57 @@ export default function NavBar() {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex h-16 items-center justify-between">
 					<div className="shrink-0 text-xl font-semibold text-black">
-                        <Link href="/">TicTacToang</Link>
-                    </div>
+						<Link href="/">TicTacToang</Link>
+					</div>
 
 					<div className="hidden sm:flex sm:items-center space-x-4">
 						<Link href={homeHref} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Home</Link>
-						<Link href={"/gamemodes"} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Game Modes</Link>
-				<Link href={pricingHref} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Pricing</Link>
-						<Link href={profileHref} className="px-3 py-2 text-gray-700 hover:bg-gray-100">Profile</Link>
-						{isSignedIn && (
-							<button onClick={handleLogout} className="px-3 py-2 rounded-md text-sm font-medium text-white bg-[#006948] hover:bg-[#005237]">
-								Logout
-							</button>
+						<Link href="/gamemodes" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Game Modes</Link>
+						<Link href={pricingHref} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">Pricing</Link>
+
+						{isSignedIn ? (
+							<div className="relative" ref={dropdownRef}>
+								<button
+									onClick={() => setDropdownOpen((prev) => !prev)}
+									className="flex items-center justify-center w-9 h-9 rounded-full bg-[#006948] text-white font-semibold text-sm hover:bg-[#005237] transition-colors focus:outline-none focus:ring-2 focus:ring-[#006948] focus:ring-offset-2"
+									aria-label="Profile menu"
+								>
+									{username ? username.charAt(0).toUpperCase() : "U"}
+								</button>
+
+								{dropdownOpen && (
+									<div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+										<div className="px-4 py-2 border-b border-gray-100">
+											<p className="text-xs text-gray-500">Signed in as</p>
+											<p className="text-sm font-medium text-gray-800 truncate">{username}</p>
+										</div>
+										<Link
+											href="/profile"
+											onClick={() => setDropdownOpen(false)}
+											className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+										>
+											Profile
+										</Link>
+										<button
+											onClick={handleLogout}
+											className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+										>
+											Sign out
+										</button>
+									</div>
+								)}
+							</div>
+						) : (
+							<div className="flex items-center space-x-2">
+								<Link href="/login" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">
+									Log in
+								</Link>
+								<Link href="/signup" className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-[#006948] hover:bg-[#005237] transition-colors">
+									Sign up
+								</Link>
+							</div>
 						)}
 					</div>
-
-                    {!hideSignupButton && (
-                        <Link href={'/signup'}>
-                            <div className="hidden sm:flex sm:items-center space-x-4 text-white bg-[#006948] p-3 px-6 rounded-xl">
-                                Sign up
-                            </div>
-                        </Link>
-                    )}
 
 					<div className="sm:hidden">
 						<button aria-label="Open menu" className="p-2 rounded-md text-gray-600 hover:bg-gray-100">☰</button>
@@ -80,4 +140,3 @@ export default function NavBar() {
 		</div>
 	)
 }
-

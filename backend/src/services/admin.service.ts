@@ -1,86 +1,28 @@
-import adminRepository from '../repositories/admin.repository';
-import { IAdmin } from '../models/admin.model';
+import userRepository, { PaginationResult } from '../repositories/user.repository';
+import { IUser } from '../models/user.model';
 
 class AdminService {
-  // Create admin with validation
-  async createAdmin(adminData: Partial<IAdmin>): Promise<IAdmin> {
-    try {
-      // TODO: Add business logic and validation
-      const admin = await adminRepository.create(adminData);
-      return admin;
-    } catch (error) {
-      throw error;
-    }
+  async getAllUsers(page: number = 1, limit: number = 10): Promise<PaginationResult> {
+    return await userRepository.findAll(page, limit);
   }
 
-  // Get admin by ID
-  async getAdminById(id: string): Promise<IAdmin> {
-    try {
-      // TODO: Add business logic
-      const admin = await adminRepository.findById(id);
-      if (!admin) {
-        throw new Error('Admin not found');
-      }
-      return admin;
-    } catch (error) {
-      throw error;
-    }
+  async getUserById(id: string): Promise<IUser> {
+    const user = await userRepository.findById(id);
+    if (!user) throw new Error('User not found');
+    return user;
   }
 
-  // Get admin by username
-  async getAdminByUsername(username: string): Promise<IAdmin> {
-    try {
-      // TODO: Add business logic
-      const admin = await adminRepository.findByUsername(username);
-      if (!admin) {
-        throw new Error('Admin not found');
-      }
-      return admin;
-    } catch (error) {
-      throw error;
-    }
+  async deactivateUser(id: string): Promise<IUser> {
+    const user = await userRepository.update(id, { isActive: false });
+    if (!user) throw new Error('User not found');
+    return user;
   }
 
-  // Get all admins
-  async getAllAdmins(): Promise<IAdmin[]> {
-    try {
-      // TODO: Add business logic (filtering, pagination, etc.)
-      const admins = await adminRepository.findAll();
-      return admins;
-    } catch (error) {
-      throw error;
-    }
+  async reactivateUser(id: string): Promise<IUser> {
+    const user = await userRepository.update(id, { isActive: true });
+    if (!user) throw new Error('User not found');
+    return user;
   }
-
-  // Update admin
-  async updateAdmin(id: string, adminData: Partial<IAdmin>): Promise<IAdmin> {
-    try {
-      // TODO: Add business logic and validation
-      const admin = await adminRepository.update(id, adminData);
-      if (!admin) {
-        throw new Error('Admin not found');
-      }
-      return admin;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // Delete admin
-  async deleteAdmin(id: string): Promise<IAdmin> {
-    try {
-      // TODO: Add business logic
-      const admin = await adminRepository.delete(id);
-      if (!admin) {
-        throw new Error('Admin not found');
-      }
-      return admin;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // TODO: Add custom business logic methods
 }
 
 export default new AdminService();

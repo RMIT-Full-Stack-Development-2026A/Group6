@@ -1,3 +1,4 @@
+// hard bot: win/block/fork checks then heatmap-based scoring for best move
 import { BoardState } from "./types";
 import { buildBoard } from "./buildBoard";
 import { countOpenThrees } from "./countOpenThrees";
@@ -6,7 +7,7 @@ import { getRandomMove } from "./getRandomMove";
 import { isWinningMove } from "./isWinningMove";
 import { toNotation } from "./toNotation";
 import { generateHeatmap } from "./generateHeatmap";
-import { printHeatmap } from "./printHeatmap";
+//import { printHeatmap } from "./printHeatmap";
 
 export function getBotMove(
     state: BoardState,
@@ -22,9 +23,8 @@ export function getBotMove(
 
     const board = buildBoard(state, tableSize);
 
-    // 🔥 print heatmap BEFORE decision
     const heatmap = generateHeatmap(state, tableSize);
-    printHeatmap(heatmap, state, tableSize);
+    //printHeatmap(heatmap, state, tableSize);
 
     const emptyCells: [number, number][] = [];
 
@@ -99,7 +99,7 @@ export function getBotMove(
 }
 
 // --- TEST CALL ---
-console.log(
+/*console.log(
     getBotMove(
         {
             player: [
@@ -131,3 +131,4 @@ console.log(
         15
     )
 );
+*/

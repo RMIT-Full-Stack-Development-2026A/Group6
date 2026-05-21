@@ -1,64 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { Subscription, getSubscription } from '@/services/userService';
 
 interface SubscriptionSectionProps {
-  subscriptionId: string | null;
+  isPremium: boolean;
 }
 
-export default function SubscriptionSection({ subscriptionId }: SubscriptionSectionProps) {
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (subscriptionId) {
-      loadSubscription();
-    } else {
-      setIsLoading(false);
-    }
-  }, [subscriptionId]);
-
-  const loadSubscription = async () => {
-    if (!subscriptionId) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data = await getSubscription(subscriptionId);
-      setSubscription(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load subscription');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex items-center justify-center h-32">
-          <div className="text-gray-500">Loading subscription details...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
-        </div>
-      </div>
-    );
-  }
-
-  const isPremium = subscription?.name === 'Premium';
-
+export default function SubscriptionSection({ isPremium }: SubscriptionSectionProps) {
   return (
     <div className="space-y-6">
       {/* Current Subscription */}
@@ -71,10 +20,10 @@ export default function SubscriptionSection({ subscriptionId }: SubscriptionSect
           <div className="flex items-center justify-between mb-4">
             <div>
               <h4 className="text-xl font-bold text-gray-900">
-                {subscription?.name || 'Free'} Plan
+                {isPremium ? 'Premium' : 'Free'} Plan
               </h4>
               <p className="text-sm text-gray-600 mt-1">
-                {subscription?.description || 'Basic access to TicTacToang'}
+                {isPremium ? 'Full access to TicTacToang' : 'Basic access to TicTacToang'}
               </p>
             </div>
             {isPremium && (
@@ -85,65 +34,33 @@ export default function SubscriptionSection({ subscriptionId }: SubscriptionSect
           </div>
 
           <div className="border-t border-gray-200 pt-4 mt-4">
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <p className="text-sm text-gray-600">Price</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ${subscription?.price || 0}
-                  <span className="text-sm font-normal text-gray-600">
-                    /{subscription?.duration.value} {subscription?.duration.unit}
-                    {(subscription?.duration.value || 0) > 1 ? 's' : ''}
-                  </span>
-                </p>
-              </div>
-              {isPremium && (
-                <div>
-                  <p className="text-sm text-gray-600">Next Billing Date</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </p>
-                </div>
-              )}
-            </div>
-
             <div className="space-y-2">
               <p className="text-sm font-semibold text-gray-900">Features:</p>
               <ul className="space-y-2">
-                {subscription?.features.multiplayerAccess && (
-                  <li className="flex items-center gap-2 text-sm text-gray-700">
-                    <span className="text-[#006948]">✓</span>
-                    <span>Unlimited multiplayer access</span>
-                  </li>
-                )}
-                {subscription?.features.adFree && (
-                  <li className="flex items-center gap-2 text-sm text-gray-700">
-                    <span className="text-[#006948]">✓</span>
-                    <span>Ad-free experience</span>
-                  </li>
-                )}
-                {subscription?.features.customThemes && (
-                  <li className="flex items-center gap-2 text-sm text-gray-700">
-                    <span className="text-[#006948]">✓</span>
-                    <span>Custom themes</span>
-                  </li>
-                )}
-                {subscription?.features.cloudSave && (
-                  <li className="flex items-center gap-2 text-sm text-gray-700">
-                    <span className="text-[#006948]">✓</span>
-                    <span>Cloud save</span>
-                  </li>
-                )}
-                {subscription?.features.premiumSupport && (
-                  <li className="flex items-center gap-2 text-sm text-gray-700">
-                    <span className="text-[#006948]">✓</span>
-                    <span>Priority support</span>
-                  </li>
-                )}
-                {!isPremium && (
+                {isPremium ? (
+                  <>
+                    <li className="flex items-center gap-2 text-sm text-gray-700">
+                      <span className="text-[#006948]">✓</span>
+                      <span>Unlimited multiplayer access</span>
+                    </li>
+                    <li className="flex items-center gap-2 text-sm text-gray-700">
+                      <span className="text-[#006948]">✓</span>
+                      <span>Ad-free experience</span>
+                    </li>
+                    <li className="flex items-center gap-2 text-sm text-gray-700">
+                      <span className="text-[#006948]">✓</span>
+                      <span>Custom themes</span>
+                    </li>
+                    <li className="flex items-center gap-2 text-sm text-gray-700">
+                      <span className="text-[#006948]">✓</span>
+                      <span>Cloud save</span>
+                    </li>
+                    <li className="flex items-center gap-2 text-sm text-gray-700">
+                      <span className="text-[#006948]">✓</span>
+                      <span>Priority support</span>
+                    </li>
+                  </>
+                ) : (
                   <>
                     <li className="flex items-center gap-2 text-sm text-gray-700">
                       <span className="text-[#006948]">✓</span>
@@ -179,42 +96,6 @@ export default function SubscriptionSection({ subscriptionId }: SubscriptionSect
           </div>
         </div>
       </div>
-
-      {/* Billing History */}
-      {isPremium && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Billing History</h3>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                <tr>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">Premium Subscription</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">${subscription?.price}.00</td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Paid</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
       {/* Upgrade Benefits (for Free users) */}
       {!isPremium && (

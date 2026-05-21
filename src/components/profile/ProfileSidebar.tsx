@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useRef } from 'react';
-import { User, Subscription } from '@/services/userService';
+import { User } from '@/services/userService';
 
 interface ProfileSidebarProps {
   user: User;
-  subscription?: Subscription | null;
+  subscription?: boolean;
   activeSection: 'profile' | 'history' | 'security' | 'subscription';
   onSectionChange: (section: 'profile' | 'history' | 'security' | 'subscription') => void;
   onAvatarChange: (avatarUrl: string) => void;
@@ -118,7 +118,7 @@ export default function ProfileSidebar({
         </button>
         <h2 className="text-base font-semibold mt-3 text-gray-900">{user.username}</h2>
         <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
-        {subscription?.name === 'Premium' && (
+        {subscription && (
           <div className="mt-2 bg-[#006948] text-white text-xs px-3 py-1 rounded-full flex items-center gap-1 font-medium">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="white"><polyline points="20 6 9 17 4 12"/></svg>
             <span>PREMIUM</span>

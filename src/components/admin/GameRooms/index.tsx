@@ -14,7 +14,6 @@ interface GameRoomsProps {
   searchQuery?: string;
   onSearchChange?: (value: string) => void;
   onFilter?: () => void;
-  onNewRoom?: () => void;
   onSpectate?: (roomId: string) => void;
   onClose?: (roomId: string) => void;
   showFilters?: boolean;
@@ -28,7 +27,6 @@ export default function GameRooms({
   searchQuery,
   onSearchChange,
   onFilter,
-  onNewRoom,
   onSpectate,
   onClose,
   showFilters = false,
@@ -45,7 +43,6 @@ export default function GameRooms({
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
           onFilter={onFilter}
-          onNewRoom={onNewRoom}
         />
         {showFilters && (
           <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-5">

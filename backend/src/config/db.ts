@@ -1,3 +1,4 @@
+// establishes the MongoDB connection and exits on failure
 import mongoose from 'mongoose';
 
 const connectDB = async (): Promise<void> => {
