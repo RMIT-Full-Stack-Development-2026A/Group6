@@ -24,6 +24,14 @@ class GameRepository {
       .populate('players.playerO', 'username profile.avatar');
   }
 
+  // used for replay
+  async findByIdWithMoves(id: string): Promise<IGame | null> {
+    return await Game.findById(id)
+      .populate('players.playerX', 'username profile.avatar')
+      .populate('players.playerO', 'username profile.avatar')
+      .populate('moves.player', 'username');
+  }
+
   async findAll(): Promise<IGame[]> {
     return await Game.find()
       .populate('players.playerX', 'username')
@@ -61,7 +69,6 @@ class GameRepository {
     return { games, total };
   }
 
-  
   async findByPlayerWithFilters(query: GameHistoryQuery): Promise<{ games: IGame[]; total: number }> {
     const { userId, page, limit, search, result, gameMode, dateFrom, dateTo, sortDir = 'desc' } = query;
     const skip = (page - 1) * limit;
@@ -71,7 +78,6 @@ class GameRepository {
       $or: [{ 'players.playerX': oid }, { 'players.playerO': oid }],
     };
 
-   
     if (search && search.trim()) {
       const pattern = new RegExp(search.trim(), 'i');
       filter.$and = [
@@ -84,12 +90,10 @@ class GameRepository {
       ];
     }
 
-  
     if (gameMode && gameMode !== 'all') {
       filter.gameMode = gameMode;
     }
 
-   
     if (result && result !== 'all' as any) {
       if (result === 'aborted') {
         filter.status = 'abandoned';
@@ -111,7 +115,6 @@ class GameRepository {
       }
     }
 
-   
     if (dateFrom || dateTo) {
       const dateFilter: Record<string, Date> = {};
       if (dateFrom) dateFilter.$gte = new Date(dateFrom);

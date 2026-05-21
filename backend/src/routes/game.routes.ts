@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import gameController from '../controllers/game.controller';
 import authMiddleware from '../middleware/auth.middleware';
+import premiumMiddleware from '../middleware/premium.middleware';
 
 const router = Router();
 
-// All game routes require authentication
 router.get('/my', authMiddleware, (req: Request, res: Response) =>
   gameController.getMyGames(req, res)
 );
@@ -20,6 +20,12 @@ router.get('/', authMiddleware, (req: Request, res: Response) =>
 router.get('/:id', authMiddleware, (req: Request, res: Response) =>
   gameController.getById(req as Request<{ id: string }>, res)
 );
+
+// Premium-only: fetch full move list for replay
+router.get('/:id/moves', authMiddleware, premiumMiddleware, (req: Request, res: Response) =>
+  gameController.getGameMoves(req as Request<{ id: string }>, res)
+);
+
 router.put('/:id', authMiddleware, (req: Request, res: Response) =>
   gameController.update(req as Request<{ id: string }>, res)
 );

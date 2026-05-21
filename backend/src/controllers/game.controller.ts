@@ -154,6 +154,49 @@ class GameController {
     }
   }
 
+  // Returns the ordered moves list for premium only game
+  async getGameMoves(req: Request<IdParams>, res: Response): Promise<void> {
+    try {
+      const userId = req.user!.id;
+
+      const raw = await Game.findById(req.params.id).select('players').lean();
+      if (!raw) {
+        res.status(404).json({ success: false, message: 'Game not found' });
+        return;
+      }
+
+      const xId = raw.players?.playerX?.toString() ?? null;
+      const oId = raw.players?.playerO?.toString() ?? null;
+      const isParticipant = xId === userId || oId === userId;
+
+      if (!isParticipant) {
+        res.status(403).json({ success: false, message: 'You are not a participant of this game.' });
+        return;
+      }
+
+      const game = await gameRepository.findByIdWithMoves(req.params.id);
+      if (!game) {
+        res.status(404).json({ success: false, message: 'Game not found' });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          gameId: game._id,
+          gridSize: game.gridSize,
+          players: game.players,
+          customization: game.customization,
+          result: game.result,
+          status: game.status,
+          moves: game.moves,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: (error as Error).message });
+    }
+  }
+
   async update(req: Request<IdParams>, res: Response): Promise<void> {
     try {
       const game = await gameService.updateGame(req.params.id, req.body);
