@@ -30,17 +30,13 @@ async function saveAvatarFromBase64(userId: string, avatarData: string, baseUrl:
 class UserService {
   async getUserById(userId: string): Promise<IUser> {
     const user = await userRepository.findById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
+    if (!user) throw new Error('User not found');
     return user;
   }
 
   async getUserByEmail(email: string): Promise<IUser> {
     const user = await userRepository.findByEmail(email);
-    if (!user) {
-      throw new Error('User not found');
-    }
+    if (!user) throw new Error('User not found');
     return user;
   }
 
@@ -53,18 +49,10 @@ class UserService {
     }
 
     const existingUsername = await userRepository.findByUsername(userData.username);
-    if (existingUsername) {
-      throw new Error('Username already taken');
-    }
+    if (existingUsername) throw new Error('Username already taken');
 
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
-
-    const user = await userRepository.create({
-      ...userData,
-      password: hashedPassword,
-    });
-
-    return user;
+    // Password is hashed by the pre('save') hook in user.model.ts — do NOT hash here
+    return await userRepository.create(userData);
   }
 
   async updateUser(userId: string, updateData: UpdateUserData, baseUrl: string): Promise<IUser> {
@@ -72,7 +60,7 @@ class UserService {
     // Password updates should go through a dedicated password flow.
     delete updateData.password;
     delete updateData.role;
-    delete updateData.subscription;
+
 
     if (updateData.profile?.avatar && isBase64Image(updateData.profile.avatar)) {
       const avatarUrl = await saveAvatarFromBase64(userId, updateData.profile.avatar, baseUrl);
@@ -86,41 +74,27 @@ class UserService {
     }
 
     const user = await userRepository.update(userId, updateData);
-    if (!user) {
-      throw new Error('User not found');
-    }
+    if (!user) throw new Error('User not found');
     return user;
   }
 
-  async updatePassword(
-    userId: string,
-    oldPassword: string,
-    newPassword: string
-  ): Promise<IUser> {
+  async updatePassword(userId: string, oldPassword: string, newPassword: string): Promise<IUser> {
     const user = await userRepository.findById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
+    if (!user) throw new Error('User not found');
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (!isMatch) {
-      throw new Error('Current password is incorrect');
-    }
+    if (!isMatch) throw new Error('Current password is incorrect');
 
+    // Hash manually here because we're using findByIdAndUpdate (bypasses pre('save') hook)
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-
     const updatedUser = await userRepository.update(userId, { password: hashedPassword });
-    if (!updatedUser) {
-      throw new Error('User not found');
-    }
+    if (!updatedUser) throw new Error('User not found');
     return updatedUser;
   }
 
   async deleteUser(userId: string): Promise<IUser> {
     const user = await userRepository.delete(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
+    if (!user) throw new Error('User not found');
     return user;
   }
 

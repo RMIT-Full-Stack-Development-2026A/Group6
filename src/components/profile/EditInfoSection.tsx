@@ -15,6 +15,9 @@ export default function EditInfoSection({ user, onUpdate }: EditInfoSectionProps
   const [formData, setFormData] = useState({
     username: user.username,
     email: user.email,
+    firstName: user.profile.firstName,
+    lastName: user.profile.lastName,
+    bio: user.profile.bio,
     country: user.profile.country,
   });
 
@@ -22,6 +25,9 @@ export default function EditInfoSection({ user, onUpdate }: EditInfoSectionProps
     setFormData({
       username: user.username,
       email: user.email,
+      firstName: user.profile.firstName,
+      lastName: user.profile.lastName,
+      bio: user.profile.bio,
       country: user.profile.country,
     });
   }, [user]);
@@ -33,7 +39,12 @@ export default function EditInfoSection({ user, onUpdate }: EditInfoSectionProps
     try {
       const payload: UpdateProfilePayload = {
         username: formData.username,
-        profile: { country: formData.country },
+        profile: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          bio: formData.bio,
+          country: formData.country,
+        },
       };
       const updatedUser = await updateProfile(payload);
       onUpdate(updatedUser);
@@ -49,6 +60,9 @@ export default function EditInfoSection({ user, onUpdate }: EditInfoSectionProps
     setFormData({
       username: user.username,
       email: user.email,
+      firstName: user.profile.firstName,
+      lastName: user.profile.lastName,
+      bio: user.profile.bio,
       country: user.profile.country,
     });
     setError(null);
@@ -101,6 +115,49 @@ export default function EditInfoSection({ user, onUpdate }: EditInfoSectionProps
               disabled
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-400 bg-gray-50 cursor-not-allowed"
             />
+            <p className="mt-1 text-xs text-gray-400">Email cannot be changed here.</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                First Name
+              </label>
+              <input
+                type="text"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                placeholder="First name"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#006948] focus:border-[#006948]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                Last Name
+              </label>
+              <input
+                type="text"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                placeholder="Last name"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#006948] focus:border-[#006948]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+              Bio
+            </label>
+            <textarea
+              value={formData.bio}
+              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              placeholder="Tell other players about yourself..."
+              rows={3}
+              maxLength={500}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#006948] focus:border-[#006948] resize-none"
+            />
+            <p className="mt-1 text-xs text-gray-400 text-right">{formData.bio.length}/500</p>
           </div>
 
           <div>

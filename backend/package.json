@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "seed": "ts-node src/config/seed.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,14 +15,15 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
-    "dotenv": "^17.4.0",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.2",
     "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.3.3",
+    "mongoose": "^9.6.2",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.4",
+    "path": "^0.12.7",
     "sharp": "^0.34.5",
     "socket.io": "^4.8.3"
   },
