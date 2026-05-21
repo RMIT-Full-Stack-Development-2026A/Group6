@@ -16,27 +16,6 @@ export default function RegisterPlayerForm({ onClose, onSuccess }: RegisterPlaye
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [position, setPosition] = useState<{ x: number; y: number } | null>(null)
-  const [dragging, setDragging] = useState(false)
-  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
-
-  useEffect(() => {
-    const handleMouseUp = () => setDragging(false)
-    window.addEventListener("mouseup", handleMouseUp)
-    return () => window.removeEventListener("mouseup", handleMouseUp)
-  }, [])
-
-  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-    setDragging(true)
-    const initialX = position?.x ?? window.innerWidth / 2 - 280
-    const initialY = position?.y ?? window.innerHeight / 2 - 260
-    setDragOffset({ x: event.clientX - initialX, y: event.clientY - initialY })
-  }
-
-  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragging) return
-    setPosition({ x: event.clientX - dragOffset.x, y: event.clientY - dragOffset.y })
-  }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -73,18 +52,10 @@ export default function RegisterPlayerForm({ onClose, onSuccess }: RegisterPlaye
     }
   }
 
-  const modalStyle = position
-    ? { left: position.x, top: position.y, transform: "none", position: "absolute" as const }
-    : { left: "50%", top: "50%", transform: "translate(-50%, -50%)", position: "absolute" as const }
-
   return (
     <div className="fixed inset-0 z-50 bg-black/40 p-4">
-      <div
-        style={modalStyle}
-        onMouseMove={handleMouseMove}
-        className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl"
-      >
-        <div className="flex items-center justify-between mb-6 cursor-move" onMouseDown={handleMouseDown}>
+      <div className="mx-auto w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900">Register New Player</h2>
             <p className="text-sm text-slate-500">Create a new player account from the admin dashboard.</p>
