@@ -3,7 +3,7 @@ import subscriptionController from '../controllers/subscription.controller';
 import authMiddleware from '../middleware/auth.middleware';
 import roleMiddleware from '../middleware/role.middleware';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // Public route — anyone can browse active plans
 router.get('/active/plans', (req, res) => subscriptionController.getActiveSubscriptions(req, res));
