@@ -20,7 +20,6 @@ export default function GameRoomsTable({ rooms, onSpectate, onClose }: GameRooms
             <th className="text-left px-6 py-3 font-semibold text-gray-700">Status</th>
             <th className="text-left px-6 py-3 font-semibold text-gray-700">Created At</th>
             <th className="text-left px-6 py-3 font-semibold text-gray-700">AI Difficulty</th>
-            <th className="text-left px-6 py-3 font-semibold text-gray-700">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -78,14 +77,6 @@ export default function GameRoomsTable({ rooms, onSpectate, onClose }: GameRooms
               <td className="px-6 py-4 text-gray-600">{room.createdAt}</td>
               <td className="px-6 py-4 text-gray-600">
                 {room.gameMode === "bot" ? (room.aiDifficulty || "N/A") : "-"}
-              </td>
-              <td className="px-6 py-4">
-                <button
-                  onClick={() => onClose?.(room.id)}
-                  className="text-red-600 hover:text-red-800 font-bold"
-                >
-                  Close
-                </button>
               </td>
             </tr>
           ))}
