@@ -106,7 +106,7 @@ export default function ProfileSidebar({
           aria-label="Change profile picture"
         >
           <img
-            src={user.profile.avatar || '/angelina.png'}
+            src={user.profile.avatar || '/pfp.png'}
             alt={user.username}
             className="w-full h-full object-cover"
           />
