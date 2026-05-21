@@ -154,6 +154,8 @@ export interface User {
   username: string;
   email: string;
   role: 'user' | 'admin';
+  subscription: boolean;
+  subscriptionExpires: string | null;
   currentSubscription: string | null;
   profile: {
     avatar: string;
