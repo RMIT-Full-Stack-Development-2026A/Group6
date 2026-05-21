@@ -6,14 +6,13 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 import UserManagement from "@/components/admin/UserManagement";
 import RegisterPlayerForm from "@/components/admin/UserManagement/RegisterPlayerForm";
 import GameRooms from "@/components/admin/GameRooms";
-import Settings from "@/components/admin/Settings";
 import { getUsers, deactivateUser, reactivateUser, deleteUser } from "@/services/adminUserManagement.service";
 import { getRooms, closeRoom, spectateRoom } from "@/services/adminGameRooms.service";
 import { logout } from "@/services/authService";
 import type { User } from "@/services/adminUserManagement.service";
 import type { Room } from "@/services/adminGameRooms.service";
 
-type TabType = "users" | "rooms" | "settings";
+type TabType = "users" | "rooms";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -127,7 +126,6 @@ export default function AdminPage() {
   const tabs: { id: TabType; label: string; description: string }[] = [
     { id: "users", label: "User Management", description: "Manage player accounts, roles, and permissions" },
     { id: "rooms", label: "Game Rooms", description: "Monitor and manage active and archived game rooms" },
-    { id: "settings", label: "Settings", description: "Configure system settings and application features" },
   ];
 
   const filteredUsers = users.filter((user) =>
@@ -228,8 +226,6 @@ export default function AdminPage() {
             onClearFilters={clearRoomFilters}
           />
         );
-      case "settings":
-        return <Settings />;
       default:
         return null;
     }

@@ -1,6 +1,6 @@
 import React from "react";
 
-type TabType = "users" | "rooms" | "settings";
+type TabType = "users" | "rooms";
 
 interface AdminSidebarProps {
   activeTab: TabType;
