@@ -24,10 +24,6 @@ export interface BotGamePayload {
 
 
 
-/**
- * Converts a zero-based column index to a letter string.
- * col 0 → "a", col 25 → "z", col 26 → "aa", etc.
- */
 export function colToAlpha(col: number): string {
   let result = '';
   let n = col;
@@ -38,37 +34,28 @@ export function colToAlpha(col: number): string {
   return result;
 }
 
-/**
- * Converts algebraic notation back to { row, col } (zero-based).
- * "a1" → { col: 0, row: gridSize - 1 } (row 1 = bottom row).
- */
 export function algebraicToCoords(
   notation: string,
   gridSize: number
 ): { row: number; col: number } {
-  const match = notation.match(/^([a-z]+)(\d+)$/i);
+  const normalized = notation.toLowerCase();
+  const match = normalized.match(/^([a-z]+)(\d+)$/);
   if (!match) throw new Error(`Invalid algebraic notation: "${notation}"`);
 
-  const letters = match[1].toLowerCase();
+  const letters = match[1];
   const number = parseInt(match[2], 10);
-
 
   let col = 0;
   for (let i = 0; i < letters.length; i++) {
     col = col * 26 + (letters.charCodeAt(i) - 96);
   }
-  col -= 1; 
-
+  col -= 1;
 
   const row = gridSize - number;
 
   return { row, col };
 }
 
-/**
- * Merges player + bot moves into a single time-ordered IMove array.
- * The AI is represented by the sentinel ObjectId stored on the game.
- */
 function buildMoveList(
   playerMoves: AlgebraicMove[],
   botMoves: AlgebraicMove[],
@@ -140,9 +127,19 @@ function buildBoardState(
 class GameService {
 
 
-  async createGame(gameData: Partial<IGame>): Promise<IGame> {
+  async createGame(userId: string, gameData: Partial<IGame>): Promise<IGame> {
     try {
-      return await gameRepository.create(gameData);
+      const oid = new mongoose.Types.ObjectId(userId);
+      const players = {
+        playerX: oid,
+        playerO: gameData.players?.playerO ?? null,
+        player2Name: gameData.players?.player2Name ?? '',
+      };
+      return await gameRepository.create({
+        ...gameData,
+        players,
+        startedAt: new Date(),
+      });
     } catch (error) {
       throw error;
     }
@@ -194,6 +191,17 @@ class GameService {
     }
   }
 
+  async saveBotGame(
+    gameId: string,
+    userId: string,
+    playerMoves: AlgebraicMove[],
+    botMoves: AlgebraicMove[],
+    last_move: string,
+    outcome: 'player' | 'bot' | 'draw' | 'abandoned'
+  ): Promise<IGame> {
+    return this.recordBotGameMoves(gameId, playerMoves, botMoves, last_move, outcome);
+  }
+
   async recordBotGameMoves(
     gameId: string,
     playerMoves: AlgebraicMove[],
@@ -220,13 +228,20 @@ class GameService {
     const playerId = game.players.playerX ?? game.players.playerO;
     if (!playerId) throw new Error('No player found on game');
 
-    // Sentinel ObjectId for the AI (stored as winner when bot wins)
     const BOT_OID = new mongoose.Types.ObjectId('000000000000000000000001');
 
+    const normalizedPlayerMoves = playerMoves.map((m) => ({
+      ...m,
+      notation: m.notation.toLowerCase(),
+    }));
+    const normalizedBotMoves = botMoves.map((m) => ({
+      ...m,
+      notation: m.notation.toLowerCase(),
+    }));
 
     const moves = buildMoveList(
-      playerMoves,
-      botMoves,
+      normalizedPlayerMoves,
+      normalizedBotMoves,
       playerSymbol,
       botSymbol,
       playerId as mongoose.Types.ObjectId,
@@ -237,8 +252,8 @@ class GameService {
   
     const boardState = buildBoardState(
       gridSize,
-      playerMoves,
-      botMoves,
+      normalizedPlayerMoves,
+      normalizedBotMoves,
       playerSymbol,
       botSymbol
     );
