@@ -66,11 +66,15 @@ function colToAlpha(col: number): string {
 }
 
 function toAlgebraic(row: number, col: number, gridSize: number): string {
-  return `${colToAlpha(col)}${row + 1}`
+  return `${colToAlpha(col)}${gridSize - row}`
 }
 
 function toBotNotation(row: number, col: number): string {
   return String.fromCharCode(65 + col) + (row + 1)
+}
+
+function toAlgebraicForApi(row: number, col: number, gridSize: number): string {
+  return `${colToAlpha(col)}${gridSize - row}`
 }
 
 function fromBotNotation(notation: string): { row: number; col: number } {
@@ -236,7 +240,7 @@ async function apiSaveBotGame(
   lastMove: string,
   outcome: "player" | "bot" | "draw" | "abandoned"
 ): Promise<void> {
-  const effectiveLastMove = lastMove || (playerMoves[0]?.notation ?? "A1")
+  const effectiveLastMove = lastMove || (playerMoves[0]?.notation ?? "a1")
   try {
     await fetch(`${API_BASE}/api/games/${gameId}/bot-moves`, {
       method: "POST",
@@ -325,9 +329,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
       const { mode } = prev.config
       const symbol = prev.currentTurn
-      const algebraic = toAlgebraic(row, col, prev.config.gridSize)
+      const algNotation = toAlgebraicForApi(row, col, prev.config.gridSize)
 
-      playerMovesRef.current = [...playerMovesRef.current, { notation: toBotNotation(row, col), row, col }]
+      playerMovesRef.current = [...playerMovesRef.current, { notation: algNotation, row, col }]
       lastMoveRef.current = toBotNotation(row, col)
 
       const isBotTurn = mode === "bot"
@@ -410,9 +414,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             if (prev.status !== "in-progress") return prev
             if (prev.board[row][col] !== null) return { ...prev, isBotThinking: false, currentTurn: "X" }
 
-            const botAlgNotation = toBotNotation(row, col)
-            botMovesRef.current  = [...botMovesRef.current, { notation: botAlgNotation, row, col }]
-            lastMoveRef.current  = botAlgNotation
+            const algNotation = toAlgebraicForApi(row, col, prev.config.gridSize)
+            botMovesRef.current  = [...botMovesRef.current, { notation: algNotation, row, col }]
+            lastMoveRef.current  = toBotNotation(row, col)
 
             return applyMove(prev, row, col, "O", "X", false)
           })

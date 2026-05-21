@@ -177,11 +177,14 @@ class GameController {
       const { gameId } = req.params;
       const userId = req.user!.id;
       const { playerMoves, botMoves, last_move, outcome } = req.body;
+      
       const result = await gameService.saveBotGame(
-        gameId, userId,
+        gameId,
+        userId,
         playerMoves as AlgebraicMove[],
         botMoves    as AlgebraicMove[],
-        last_move, outcome
+        last_move,
+        outcome
       );
       res.status(200).json({ success: true, data: result });
     } catch (error) {

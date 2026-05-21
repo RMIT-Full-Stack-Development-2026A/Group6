@@ -177,7 +177,6 @@ const gameSchema = new Schema<IGame>(
 // Indexes
 gameSchema.index({ status: 1 });
 gameSchema.index({ gameMode: 1, status: 1 });
-gameSchema.index({ roomCode: 1 });
 gameSchema.index({ 'players.playerX': 1 });
 gameSchema.index({ 'players.playerO': 1 });
 gameSchema.index({ createdAt: -1 });
