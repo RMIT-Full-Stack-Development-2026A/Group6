@@ -32,7 +32,8 @@ export default function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
 			const data = await login({ usernameOrEmail, password })
 			setLoading(false)
 			onSuccess?.(data)
-			if (redirectTo) window.location.assign(redirectTo)
+			const destination = data.user?.role === "admin" ? "/admin" : redirectTo
+			if (destination) window.location.assign(destination)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Login failed")
 			setLoading(false)

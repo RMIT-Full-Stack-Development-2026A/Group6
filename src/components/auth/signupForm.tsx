@@ -36,7 +36,8 @@ export default function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
             const data = await signup({ email, username, country, password })
             setLoading(false)
             onSuccess?.(data)
-            if (redirectTo) window.location.assign(redirectTo)
+            const destination = data.user?.role === "admin" ? "/admin" : redirectTo
+            if (destination) window.location.assign(destination)
         } catch (err) {
             setLoading(false)
             setError(err instanceof Error ? err.message : "Signup failed")

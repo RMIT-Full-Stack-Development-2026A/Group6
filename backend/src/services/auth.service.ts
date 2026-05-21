@@ -1,7 +1,7 @@
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/user.repository';
-import TokenBlacklist from '../models/tokenBlacklist.model';
+// import TokenBlacklist from '../models/tokenBlacklist.model';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const usernameRegex = /^[A-Za-z0-9_-]+$/
@@ -17,7 +17,7 @@ export interface SignupRequest {
 export interface SignupResponse {
   user: {
     id: string;
-    userID: string; 
+    userID: string;
     email: string;
     username: string;
     country: string;
@@ -49,7 +49,8 @@ export interface LoginResponse {
 }
 
 const MAX_FAILED_LOGIN_ATTEMPTS = 5;
-const LOGIN_BLOCK_WINDOW_MS = 60 * 1000;
+const LOGIN_BLOCK_WINDOW_MS = 60 * 1000; //60s
+// const TOKEN_BLACKLIST_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const failedLoginAttempts = new Map<string, { count: number; firstAttempt: number }>();
 
@@ -76,10 +77,12 @@ function isLoginBlocked(key: string): boolean {
   return !!attempt && attempt.count >= MAX_FAILED_LOGIN_ATTEMPTS && Date.now() - attempt.firstAttempt <= LOGIN_BLOCK_WINDOW_MS;
 }
 
+/*
 export async function isTokenBlacklisted(token: string): Promise<boolean> {
   const existing = await TokenBlacklist.exists({ token });
   return Boolean(existing);
 }
+*/
 
 function validateSignupData(signupData: SignupRequest): void {
   if (!signupData.email || !signupData.password || !signupData.username || !signupData.country) {
@@ -136,11 +139,12 @@ function validateSignupData(signupData: SignupRequest): void {
 
 
 class AuthService {
+  /*
   async logout(token: string): Promise<void> {
     const decoded = jwt.decode(token) as { exp?: number } | null;
     const expiresAt = decoded?.exp
-      ? new Date(decoded.exp * 1000)
-      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); 
+      ? new Date(Math.min(decoded.exp * 1000, Date.now() + TOKEN_BLACKLIST_TTL_MS))
+      : new Date(Date.now() + TOKEN_BLACKLIST_TTL_MS);
 
     await TokenBlacklist.findOneAndUpdate(
       { token },
@@ -148,9 +152,10 @@ class AuthService {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
   }
+  */
 
   async signup(signupData: SignupRequest): Promise<SignupResponse> {
-    
+
     validateSignupData(signupData);
 
     // Use the User repository to check if this email already exists.
@@ -198,7 +203,7 @@ class AuthService {
         status: user.status,
         subscription: user.subscription,
         subscriptionExpires: user.subscriptionExpires,
-      }, 
+      },
       token,
       message: 'User registered successfully',
     };
@@ -234,6 +239,15 @@ class AuthService {
       throw new Error('Invalid credentials');
     }
 
+    const isUserActive = user.isActive !== false && user.status !== 'deactive';
+    if (!isUserActive) {
+      const failedCount = recordFailedLoginAttempt(loginKey);
+      if (failedCount >= MAX_FAILED_LOGIN_ATTEMPTS) {
+        throw new Error('Too many failed login attempts. Please wait 60 seconds before retrying.');
+      }
+      throw new Error('Account is inactive');
+    }
+
     const isPasswordValid = await bcryptjs.compare(loginData.password, user.password);
     if (!isPasswordValid) {
       const failedCount = recordFailedLoginAttempt(loginKey);
@@ -252,7 +266,7 @@ class AuthService {
         role: user.role,
       },
       process.env.JWT_SECRET || 'secret-key',
-      { expiresIn: '7d' }
+      { expiresIn: '1d' }
     );
 
     return {

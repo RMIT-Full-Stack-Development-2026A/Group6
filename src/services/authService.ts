@@ -64,7 +64,7 @@ export async function logout(): Promise<void> {
   if (typeof window === "undefined") return
 
   // Notify backend to invalidate the current token, then clear local session storage.
-  const token = localStorage.getItem("authToken")
+  const token = sessionStorage.getItem("authToken")
   if (token) { 
     await fetch(`${API_BASE}/api/auth/logout`, {
       method: "POST",
