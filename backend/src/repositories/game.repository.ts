@@ -171,8 +171,7 @@ class GameRepository {
     return await Game.findByIdAndUpdate(
       id,
       {
-        $push: { moves: { $each: moves } },
-        $set: { status, result, winner, boardState, completedAt },
+        $set: { moves, status, result, winner, boardState, completedAt },
       },
       { new: true }
     )

@@ -296,12 +296,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const botMovesRef    = useRef<{ notation: string; row: number; col: number }[]>([])
   const lastMoveRef    = useRef<string>("")
   const botThinkingRef = useRef<boolean>(false)
+  // Tracks how many moves from gameState.moves have been synced into playerMovesRef/botMovesRef
+  const syncedMoveCountRef = useRef<number>(0)
 
   const initGame = useCallback(async (config: GameConfig) => {
     playerMovesRef.current = []
     botMovesRef.current    = []
     lastMoveRef.current    = ""
     botThinkingRef.current = false
+    syncedMoveCountRef.current = 0
 
     const gameId = await apiCreateGame(config)
 
@@ -329,11 +332,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
       const { mode } = prev.config
       const symbol = prev.currentTurn
-      const algNotation = toAlgebraicForApi(row, col, prev.config.gridSize)
-
-      playerMovesRef.current = [...playerMovesRef.current, { notation: algNotation, row, col }]
-      lastMoveRef.current = toBotNotation(row, col)
-
       const isBotTurn = mode === "bot"
       if (isBotTurn) botThinkingRef.current = true
 
@@ -351,6 +349,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     botMovesRef.current    = []
     lastMoveRef.current    = ""
     botThinkingRef.current = false
+    syncedMoveCountRef.current = 0
 
     setGameState((prev) => {
       apiCreateGame(prev.config).then((newId) => {
@@ -376,6 +375,26 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const setGameId = useCallback((id: string) => {
     setGameState((prev) => ({ ...prev, gameId: id }))
   }, [])
+
+  useEffect(() => {
+    if (gameState.config.mode !== "bot") return
+    const moves = gameState.moves
+    const synced = syncedMoveCountRef.current
+    if (moves.length <= synced) return
+
+    for (let i = synced; i < moves.length; i++) {
+      const m = moves[i]
+      const notation = toAlgebraicForApi(m.row, m.col, gameState.config.gridSize)
+      if (m.symbol === "X") {
+        playerMovesRef.current = [...playerMovesRef.current, { notation, row: m.row, col: m.col }]
+        lastMoveRef.current = toBotNotation(m.row, m.col)
+      } else {
+        botMovesRef.current = [...botMovesRef.current, { notation, row: m.row, col: m.col }]
+        lastMoveRef.current = toBotNotation(m.row, m.col)
+      }
+    }
+    syncedMoveCountRef.current = moves.length
+  }, [gameState.moves, gameState.config.mode, gameState.config.gridSize])
 
   useEffect(() => {
     if (gameState.config.mode !== "bot") return
@@ -413,11 +432,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           setGameState((prev) => {
             if (prev.status !== "in-progress") return prev
             if (prev.board[row][col] !== null) return { ...prev, isBotThinking: false, currentTurn: "X" }
-
-            const algNotation = toAlgebraicForApi(row, col, prev.config.gridSize)
-            botMovesRef.current  = [...botMovesRef.current, { notation: algNotation, row, col }]
-            lastMoveRef.current  = toBotNotation(row, col)
-
             return applyMove(prev, row, col, "O", "X", false)
           })
         }, 400)

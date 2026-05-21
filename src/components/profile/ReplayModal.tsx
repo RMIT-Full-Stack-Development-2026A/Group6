@@ -3,6 +3,15 @@
 import React from 'react';
 import { useReplay } from '@/hooks/useReplay';
 
+function renderMarker(marker: string, size: number) {
+  if (!marker) return null;
+  if (marker.toLowerCase().endsWith('.png') || marker.startsWith('/')) {
+    const src = marker.startsWith('/') ? marker : `/marker/${marker}`;
+    return <img src={src} alt="marker" style={{ width: size, height: size, objectFit: 'contain' }} />;
+  }
+  return <>{marker}</>;
+}
+
 interface ReplayModalProps {
   gameId: string;
   onClose: () => void;
@@ -112,8 +121,11 @@ export default function ReplayModal({ gameId, onClose }: ReplayModalProps) {
                             style={{ width: cellSize, height: cellSize, fontSize: cellSize * 0.45 }}
                           >
                             {cell && (
-                              <span className={cell === 'X' ? 'text-[#006948]' : 'text-blue-600'}>
-                                {cell === 'X' ? data.customization.markerX : data.customization.markerO}
+                              <span className={cell === 'X' ? 'text-[#006948]' : 'text-blue-600'} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {renderMarker(
+                                  cell === 'X' ? data.customization.markerX : data.customization.markerO,
+                                  cellSize * 0.6
+                                )}
                               </span>
                             )}
                           </div>
@@ -213,11 +225,14 @@ export default function ReplayModal({ gameId, onClose }: ReplayModalProps) {
                         >
                           <span className="text-xs text-gray-400 w-5 text-right flex-shrink-0">{idx + 1}.</span>
                           <span
-                            className={`font-bold text-xs w-5 flex-shrink-0 ${
+                            className={`font-bold text-xs w-5 flex-shrink-0 flex items-center justify-center ${
                               m.symbol === 'X' ? 'text-[#006948]' : 'text-blue-600'
                             }`}
                           >
-                            {m.symbol === 'X' ? data.customization.markerX : data.customization.markerO}
+                            {renderMarker(
+                              m.symbol === 'X' ? data.customization.markerX : data.customization.markerO,
+                              16
+                            )}
                           </span>
                           <span className="font-mono text-xs">{m.position.algebraic}</span>
                           <span className="text-xs text-gray-400 ml-auto">
@@ -229,7 +244,6 @@ export default function ReplayModal({ gameId, onClose }: ReplayModalProps) {
                   </div>
                 </div>
 
-                {/* Result banner */}
                 {data.result && (
                   <div className="text-center py-2 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-600">
                     Result:{' '}
