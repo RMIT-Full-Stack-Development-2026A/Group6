@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description: "Privacy Policy",
+  title: "Subscription",
+  description: "Choose a pricing plan and manage your subscription",
 };
 
-export default function RootLayout({
+export default function SubscriptionLayout({
   children,
 }: {
   children: React.ReactNode;

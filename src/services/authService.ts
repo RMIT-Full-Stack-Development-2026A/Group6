@@ -51,6 +51,8 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
 
   // Persist token and user info in browser storage for session handling.
   if (typeof window !== "undefined") {
+    sessionStorage.setItem("authToken", data.token)
+    sessionStorage.setItem("user", JSON.stringify(data.user))
     localStorage.setItem("authToken", data.token)
     localStorage.setItem("user", JSON.stringify(data.user))
   }
@@ -73,6 +75,8 @@ export async function logout(): Promise<void> {
     }) 
   }
 
+  sessionStorage.removeItem("authToken")
+  sessionStorage.removeItem("user")
   localStorage.removeItem("authToken")
   localStorage.removeItem("user")
 }
@@ -91,6 +95,13 @@ export async function signup(payload: SignupPayload): Promise<SignupResponse> {
 
   if (!response.ok) {
     throw new Error(data?.message || "Signup failed")
+  }
+
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem("authToken", data.token)
+    sessionStorage.setItem("user", JSON.stringify(data.user))
+    localStorage.setItem("authToken", data.token)
+    localStorage.setItem("user", JSON.stringify(data.user))
   }
 
   return data
