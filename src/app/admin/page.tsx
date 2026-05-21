@@ -184,7 +184,7 @@ export default function AdminPage() {
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
-      router.push("/login");
+      router.push("/");
     }
   };
 
