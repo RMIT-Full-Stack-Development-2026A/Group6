@@ -3,7 +3,7 @@ import gameController from '../controllers/game.controller';
 import authMiddleware from '../middleware/auth.middleware';
 import premiumMiddleware from '../middleware/premium.middleware';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 router.get('/my', authMiddleware, (req: Request, res: Response) =>
   gameController.getMyGames(req, res)

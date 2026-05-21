@@ -1,3 +1,4 @@
+// validates required env vars at startup and exports typed config
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -15,4 +16,5 @@ export const env = {
   MONGODB_URI: process.env.MONGODB_URI as string,
   JWT_SECRET: process.env.JWT_SECRET as string,
   NODE_ENV: process.env.NODE_ENV || 'development',
+  BASE_URL: process.env.BASE_URL || undefined,
 };

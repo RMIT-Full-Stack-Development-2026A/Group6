@@ -1,3 +1,4 @@
+// entry point: wires middleware, routes, and starts the Express server
 import express from 'express';
 import path from 'path';
 import mongoose from 'mongoose';

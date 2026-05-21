@@ -10,7 +10,7 @@ type MatchTypeProps = {
 }
 
 export default function MatchType({ type }: MatchTypeProps) {
-    const key = String(type)
+    const key = type
     const text = matchtype.matchtype[key].desc || ""
     const iconSrc = `/matchType/${key}.svg`
     const title = matchtype.matchtype[key].name || ""

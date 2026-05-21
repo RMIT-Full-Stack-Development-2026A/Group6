@@ -1,3 +1,4 @@
+// medium bot: wins, blocks, and prevents forks before falling back to easy logic
 import { BoardState, Cell, Player } from "./types";
 import { buildBoard } from "./buildBoard";
 import { toNotation } from "./toNotation";

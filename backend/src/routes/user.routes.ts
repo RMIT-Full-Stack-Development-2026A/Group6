@@ -3,7 +3,7 @@ import userController from '../controllers/user.controller';
 import authMiddleware from '../middleware/auth.middleware';
 import roleMiddleware from '../middleware/role.middleware';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 router.get('/profile', authMiddleware, (req, res) => userController.getProfile(req, res));
 router.put('/profile', authMiddleware, (req, res) => userController.updateProfile(req, res));

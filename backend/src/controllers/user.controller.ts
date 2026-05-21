@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import userService from '../services/user.service';
+import { env } from '../config/env';
 
 class UserController {
   /**
@@ -52,7 +53,7 @@ class UserController {
     try {
       const userId = req.user!.id;
       const updateData = req.body;
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const baseUrl = env.BASE_URL || `${req.protocol}://${req.get('host')}`;
 
       const user = await userService.updateUser(userId, updateData, baseUrl);
 

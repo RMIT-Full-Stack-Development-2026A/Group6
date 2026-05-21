@@ -7,7 +7,7 @@ export interface GameHistoryQuery {
   limit: number;
   search?: string;
   result?: 'win' | 'lose' | 'draw' | 'aborted';
-  gameMode?: 'local' | 'bot' | 'online';
+  gameMode?: 'local' | 'bot' | 'online' | 'all';
   dateFrom?: string;
   dateTo?: string;
   sortDir?: 'asc' | 'desc';
@@ -74,7 +74,7 @@ class GameRepository {
     const skip = (page - 1) * limit;
     const oid = new mongoose.Types.ObjectId(userId);
 
-    const filter: mongoose.FilterQuery<IGame> = {
+    const filter: Record<string, any> = {
       $or: [{ 'players.playerX': oid }, { 'players.playerO': oid }],
     };
 
@@ -94,7 +94,7 @@ class GameRepository {
       filter.gameMode = gameMode;
     }
 
-    if (result && result !== 'all' as any) {
+    if (result && result !== 'all' as unknown) {
       if (result === 'aborted') {
         filter.status = 'abandoned';
       } else if (result === 'draw') {
@@ -123,7 +123,7 @@ class GameRepository {
         end.setDate(end.getDate() + 1);
         dateFilter.$lte = end;
       }
-      filter.startedAt = dateFilter as any;
+      filter.startedAt = dateFilter as unknown;
     }
 
     const sortOrder = sortDir === 'asc' ? 1 : -1;

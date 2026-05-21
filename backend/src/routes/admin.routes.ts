@@ -3,7 +3,7 @@ import adminController from '../controllers/admin.controller';
 import  authenticate  from '../middleware/auth.middleware';
 import requireRole  from '../middleware/role.middleware';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 router.use(authenticate, requireRole('admin'));
 

@@ -1,3 +1,4 @@
+// verifies JWT, checks blacklist, and attaches user to the request
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/user.repository';

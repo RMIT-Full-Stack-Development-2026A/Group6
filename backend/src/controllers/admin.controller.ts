@@ -1,3 +1,4 @@
+// admin-only endpoints for listing, deactivating, and reactivating users
 import { Request, Response } from 'express';
 import adminService from '../services/admin.service';
 
