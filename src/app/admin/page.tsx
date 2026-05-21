@@ -135,11 +135,14 @@ export default function AdminPage() {
   );
 
   const filteredRooms = rooms.filter((room) => {
+    const query = roomSearchQuery.toLowerCase();
     const matchesSearch =
-      room.id.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
-      room.roomNo.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
-      room.gameMode?.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
-      room.status.toLowerCase().includes(roomSearchQuery.toLowerCase());
+      room.id.toLowerCase().includes(query) ||
+      room.roomNo.toLowerCase().includes(query) ||
+      room.player1.toLowerCase().includes(query) ||
+      (room.player2 || "").toLowerCase().includes(query) ||
+      room.gameMode?.toLowerCase().includes(query) ||
+      room.status.toLowerCase().includes(query);
 
     const matchesGameMode =
       !roomFilters.gameMode || room.gameMode === roomFilters.gameMode;

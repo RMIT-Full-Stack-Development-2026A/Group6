@@ -1,5 +1,10 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
+function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem("authToken") || localStorage.getItem("authToken");
+}
+
 export interface PlayerReference {
   _id?: string;
   username?: string;
@@ -34,15 +39,75 @@ const normalizePlayerReference = (player: any): string | null => {
 };
 
 /**
+ * Fetch user by ID from the backend
+ */
+async function fetchUserById(userId: string): Promise<{ username: string } | null> {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!response.ok) return null;
+
+    const result = await response.json();
+    return result?.data || null;
+  } catch (error) {
+    console.error(`Error fetching user ${userId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Build a user ID to username map by fetching users from the backend
+ */
+async function getUsernameMap(): Promise<Map<string, string>> {
+  const usernameMap = new Map<string, string>();
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/users?limit=1000`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!response.ok) return usernameMap;
+
+    const result = await response.json();
+    const users = result?.data || [];
+
+    users.forEach((user: any) => {
+      const userId = user._id || user.id;
+      const username = user.username;
+      if (userId && username) {
+        usernameMap.set(userId, username);
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching users for username map:", error);
+  }
+
+  return usernameMap;
+}
+
+/**
  * Fetch all active game rooms
  * API Endpoint: GET /api/games
  */
 export async function getRooms(): Promise<Room[]> {
   try {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/api/games`, {
       method: "GET",
       headers: {
-        "Content-Type": "application/json", 
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 
@@ -53,13 +118,32 @@ export async function getRooms(): Promise<Room[]> {
     const result = await response.json();
     const data = result?.data || [];
 
+    // Fetch username map for player ID lookup
+    const usernameMap = await getUsernameMap();
+
     return data.map((room: any) => {
-      const player1Value = room.player1 || room.player?.player1 || null;
-      const player2Value = room.player2 || room.player?.player2 || null;
-      const player1Label = normalizePlayerReference(player1Value) || "Unknown";
-      const player2Label = normalizePlayerReference(player2Value) || null;
+      // Extract player IDs from the players object structure
+      // Handle: players.playerX (ObjectId), players.player0 (null or ObjectId), etc.
+      const playerX = room.players?.playerX;
+      const player0 = room.players?.player0;
+
+      // Convert ObjectId to string if needed
+      const player1Id = playerX ? String(playerX) : null;
+      const player2Id = player0 ? String(player0) : null;
+
+      // Look up usernames from the map
+      let player1Label = "Unknown";
+      if (player1Id) {
+        player1Label = usernameMap.get(player1Id) || player1Id;
+      }
+
+      let player2Label: string | null = null;
+      if (player2Id) {
+        player2Label = usernameMap.get(player2Id) || player2Id;
+      }
+
       const gameMode = room.gameMode || room.matchType || room.type || "Standard";
-      const opponentLabel = gameMode === "bot" ? "Bot" : player2Label || "Unknown";
+      const opponentLabel = gameMode === "bot" ? (room.players?.player2Name || "Bot") : (player2Label || "Unknown");
 
       return {
         id: room._id || room.id,
@@ -70,7 +154,7 @@ export async function getRooms(): Promise<Room[]> {
         createdAt: room.createdAt ? new Date(room.createdAt).toLocaleString() : "N/A",
         status: room.status || "",
         gameMode,
-        aiDifficulty: room.aiDifficulty || room.difficulty || undefined,
+        aiDifficulty: room.customization?.aiDifficulty || room.aiDifficulty || room.difficulty || undefined,
       };
     });
   } catch (error) {
