@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState, useMemo } from "react"
 import { Game, PlayerStats, getGameHistory, getPlayerStats } from "@/services/userService"
+import ReplayModal from "@/components/profile/ReplayModal"
 
 interface GameHistorySectionProps {
   userId?: string
   isOwnProfile: boolean
+  isPremium?: boolean // passed from parent; gates the replay button
 }
 
 type ResultFilter = "all" | "win" | "lose" | "draw" | "aborted"
@@ -32,7 +34,7 @@ function getResultLabel(game: Game): ResultFilter {
   return "lose"
 }
 
-export default function GameHistorySection({ userId, isOwnProfile }: GameHistorySectionProps) {
+export default function GameHistorySection({ userId, isOwnProfile, isPremium = false }: GameHistorySectionProps) {
   const [allGames, setAllGames]   = useState<Game[]>([])
   const [stats, setStats]         = useState<PlayerStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -41,16 +43,16 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
   const [total, setTotal]         = useState(0)
   const LIMIT = 50
 
- 
   const [search, setSearch] = useState("")
-
-  
   const [showFilters, setShowFilters] = useState(false)
   const [dateFrom, setDateFrom]   = useState("")
   const [dateTo, setDateTo]       = useState("")
   const [resultFilter, setResultFilter] = useState<ResultFilter>("all")
   const [modeFilter, setModeFilter]     = useState<ModeFilter>("all")
   const [sortDir, setSortDir]           = useState<SortDir>("desc")
+
+  // Replay state
+  const [replayGameId, setReplayGameId] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
@@ -74,11 +76,9 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
     }
   }
 
-  
   const filteredGames = useMemo(() => {
     let result = [...allGames]
 
-    
     const q = search.trim().toLowerCase()
     if (q) {
       result = result.filter((g) => {
@@ -92,17 +92,14 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
       })
     }
 
-    
     if (modeFilter !== "all") {
       result = result.filter((g) => g.gameMode === modeFilter)
     }
 
-    
     if (resultFilter !== "all") {
       result = result.filter((g) => getResultLabel(g) === resultFilter)
     }
 
-    
     if (dateFrom) {
       const from = new Date(dateFrom).getTime()
       result = result.filter((g) => g.startedAt && new Date(g.startedAt).getTime() >= from)
@@ -112,7 +109,6 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
       result = result.filter((g) => g.startedAt && new Date(g.startedAt).getTime() <= to)
     }
 
-    
     result.sort((a, b) => {
       const ta = a.startedAt ? new Date(a.startedAt).getTime() : 0
       const tb = b.startedAt ? new Date(b.startedAt).getTime() : 0
@@ -174,7 +170,11 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
 
   return (
     <div className="space-y-6">
-      
+      {/* Replay modal */}
+      {replayGameId && (
+        <ReplayModal gameId={replayGameId} onClose={() => setReplayGameId(null)} />
+      )}
+
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between mb-2">
           <div>
@@ -189,7 +189,6 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
         <p className="text-sm text-gray-600">Review your past architectural triumphs and challenges.</p>
       </div>
 
-      
       {stats && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -235,7 +234,6 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
         </div>
       )}
 
-      
       <div className="bg-white rounded-lg shadow-sm p-4">
         <div className="flex items-center gap-3">
           <div className="flex-1 relative">
@@ -258,34 +256,22 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
           </button>
         </div>
 
-        
         {showFilters && (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">From Date</label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#006948] focus:border-transparent"
-              />
+              <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#006948] focus:border-transparent" />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">To Date</label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#006948] focus:border-transparent"
-              />
+              <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#006948] focus:border-transparent" />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Result</label>
-              <select
-                value={resultFilter}
-                onChange={(e) => setResultFilter(e.target.value as ResultFilter)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#006948] focus:border-transparent bg-white"
-              >
+              <select value={resultFilter} onChange={(e) => setResultFilter(e.target.value as ResultFilter)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#006948] focus:border-transparent bg-white">
                 <option value="all">All Results</option>
                 <option value="win">Win</option>
                 <option value="lose">Loss</option>
@@ -295,11 +281,8 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Game Type</label>
-              <select
-                value={modeFilter}
-                onChange={(e) => setModeFilter(e.target.value as ModeFilter)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#006948] focus:border-transparent bg-white"
-              >
+              <select value={modeFilter} onChange={(e) => setModeFilter(e.target.value as ModeFilter)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#006948] focus:border-transparent bg-white">
                 <option value="all">All Types</option>
                 <option value="local">Single Player (Local)</option>
                 <option value="bot">vs AI Bot</option>
@@ -308,11 +291,8 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sort By Date</label>
-              <select
-                value={sortDir}
-                onChange={(e) => setSortDir(e.target.value as SortDir)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#006948] focus:border-transparent bg-white"
-              >
+              <select value={sortDir} onChange={(e) => setSortDir(e.target.value as SortDir)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#006948] focus:border-transparent bg-white">
                 <option value="desc">Newest First</option>
                 <option value="asc">Oldest First</option>
               </select>
@@ -329,13 +309,12 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
         )}
       </div>
 
-     
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                {["ROOM #","GAME TYPE","OPPONENT","DATE","DURATION","RESULT"].map((h) => (
+                {["ROOM #","GAME TYPE","OPPONENT","DATE","DURATION","RESULT", isPremium ? "REPLAY" : ""].filter(Boolean).map((h) => (
                   <th key={h} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -343,7 +322,7 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredGames.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={isPremium ? 7 : 6} className="px-6 py-12 text-center text-gray-500">
                     {search || resultFilter !== "all" || modeFilter !== "all" || dateFrom || dateTo
                       ? "No games match your filters."
                       : "No games played yet"}
@@ -374,6 +353,20 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
                     <td className="px-6 py-4 whitespace-nowrap">
                       <ResultBadge game={game} />
                     </td>
+                    {isPremium && (
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {game.status === "completed" ? (
+                          <button
+                            onClick={() => setReplayGameId(game._id)}
+                            className="px-3 py-1 text-xs font-medium rounded-md bg-[#006948] text-white hover:bg-[#005538] transition-colors"
+                          >
+                            Watch
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
@@ -396,6 +389,12 @@ export default function GameHistorySection({ userId, isOwnProfile }: GameHistory
           </div>
         )}
       </div>
+
+      {!isPremium && isOwnProfile && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+          <span className="font-semibold">Upgrade to Premium</span> to unlock match replays — step through every move with full Pause, Resume, Forward, and Backward controls.
+        </div>
+      )}
     </div>
   )
 }

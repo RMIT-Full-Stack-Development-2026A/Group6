@@ -29,7 +29,6 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
     try {
       const userData = isOwnProfile ? await getProfile() : await getUserById(userId!);
       setUser(userData);
-      // subscription is now a boolean on the User model; no separate fetch needed
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
     } finally {
@@ -44,30 +43,25 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
 
     setUser((prev) =>
       prev
-        ? {
-            ...prev,
-            profile: {
-              ...prev.profile,
-              avatar: avatarUrl,
-            },
-          }
+        ? { ...prev, profile: { ...prev.profile, avatar: avatarUrl } }
         : prev,
     );
 
     try {
-      const updatedUser = await updateProfile({ 
+      const updatedUser = await updateProfile({
         username: user.username,
-        profile: { 
-          country: user.profile.country, 
-          avatar: avatarUrl,
-        },
+        profile: { country: user.profile.country, avatar: avatarUrl },
       });
-
       setUser(updatedUser);
     } catch (error) {
       console.error('Failed to save avatar', error);
     }
   };
+
+  //premium status: subscription flag must be true and not yet expired
+  const isPremium =
+    !!user?.subscription &&
+    (user.subscriptionExpires == null || new Date() < new Date(user.subscriptionExpires));
 
   if (isLoading) {
     return (
@@ -97,11 +91,9 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
 
   return (
     <div className="min-h-screen bg-[#F5F5F5]">
-      {/* Page Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-3">
-            {/* Green left accent bar */}
             <div className="w-1 h-10 bg-[#006948] rounded-full"></div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
@@ -115,10 +107,8 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
           <div className="lg:col-span-1">
             <ProfileSidebar
               user={user}
@@ -130,35 +120,31 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
             />
           </div>
 
-          {/* Content */}
           <div className="lg:col-span-3 space-y-4">
             {isOwnProfile ? (
               <>
                 {activeSection === 'profile' && (
                   <>
-                    {/* Edit Info + Gameplay Preferences side by side */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <EditInfoSection user={user} onUpdate={handleUserUpdate} />
                       <GameplayPreferencesSection user={user} onUpdate={handleUserUpdate} />
                     </div>
-
-                    {/* Account Security below, full width */}
                     <SecuritySection />
                   </>
                 )}
 
-                {activeSection === 'history' && <GameHistorySection isOwnProfile={true} />}
+                {activeSection === 'history' && (
+                  <GameHistorySection isOwnProfile={true} isPremium={isPremium} />
+                )}
                 {activeSection === 'security' && <SecuritySection />}
                 {activeSection === 'subscription' && <SubscriptionSection isPremium={user.subscription} />}
               </>
             ) : (
-              <GameHistorySection userId={userId} isOwnProfile={false} />
+              <GameHistorySection userId={userId} isOwnProfile={false} isPremium={false} />
             )}
           </div>
         </div>
       </div>
-
-     
     </div>
   );
 }
