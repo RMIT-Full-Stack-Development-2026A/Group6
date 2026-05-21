@@ -1,3 +1,4 @@
+// handles signup, login, and logout HTTP requests
 import { Request, Response } from 'express';
 import authService from '../services/auth.service';
 

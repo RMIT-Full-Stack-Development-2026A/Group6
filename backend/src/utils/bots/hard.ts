@@ -1,3 +1,4 @@
+// hard bot: win/block/fork checks then heatmap-based scoring for best move
 import { BoardState } from "./types";
 import { buildBoard } from "./buildBoard";
 import { countOpenThrees } from "./countOpenThrees";

@@ -1,3 +1,4 @@
+// restricts routes to users whose role matches the allowed list
 import { Request, Response, NextFunction } from 'express';
 
 /**

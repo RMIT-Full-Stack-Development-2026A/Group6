@@ -1,3 +1,4 @@
+// IP-based rate limiting and per-account lockout after repeated failures
 import rateLimit from 'express-rate-limit';
 import { Request, Response, NextFunction } from 'express';
 import User from '../models/user.model';

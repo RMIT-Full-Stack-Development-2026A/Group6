@@ -1,3 +1,4 @@
+// entry point: wires middleware, routes, and starts the Express server
 import express from 'express';
 import path from 'path';
 import mongoose from 'mongoose';
@@ -15,7 +16,7 @@ import connectDB from './config/db';
 
 dotenv.config();
 
-const app: express.Express = express();
+const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());

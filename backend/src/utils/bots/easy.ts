@@ -1,3 +1,4 @@
+// easy bot: plays randomly near the last move, no threat detection
 import { BoardState, Cell } from "./types";
 import { buildBoard } from "./buildBoard";
 import { toCoord } from "./toCoord";

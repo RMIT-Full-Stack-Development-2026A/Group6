@@ -1,3 +1,4 @@
+// blocks access when the user lacks an active premium subscription
 import { Request, Response, NextFunction } from 'express';
 import userRepository from '../repositories/user.repository';
 
