@@ -1,6 +1,5 @@
 import Game, { IGame, IMove } from '../models/game.model';
 import mongoose from 'mongoose';
-import type { FilterQuery } from 'mongoose';
 
 export interface GameHistoryQuery {
   userId: string;
@@ -75,7 +74,7 @@ class GameRepository {
     const skip = (page - 1) * limit;
     const oid = new mongoose.Types.ObjectId(userId);
 
-    const filter: FilterQuery<IGame> = {
+    const filter: Record<string, any> = {
       $or: [{ 'players.playerX': oid }, { 'players.playerO': oid }],
     };
 
