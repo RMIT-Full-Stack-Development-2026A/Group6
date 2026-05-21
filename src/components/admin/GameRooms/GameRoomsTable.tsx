@@ -14,6 +14,8 @@ export default function GameRoomsTable({ rooms, onSpectate, onClose }: GameRooms
         <thead>
           <tr className="border-b border-gray-200">
             <th className="text-left px-6 py-3 font-semibold text-gray-700">Room ID</th>
+            <th className="text-left px-6 py-3 font-semibold text-gray-700">Player 1</th>
+            <th className="text-left px-6 py-3 font-semibold text-gray-700">Player 2</th>
             <th className="text-left px-6 py-3 font-semibold text-gray-700">Game Mode</th>
             <th className="text-left px-6 py-3 font-semibold text-gray-700">Status</th>
             <th className="text-left px-6 py-3 font-semibold text-gray-700">Created At</th>
@@ -55,6 +57,8 @@ export default function GameRoomsTable({ rooms, onSpectate, onClose }: GameRooms
                 )}
                 <span className="font-bold">{room.id}</span>
               </td>
+              <td className="px-6 py-4 text-gray-700">{room.player1}</td>
+              <td className="px-6 py-4 text-gray-700">{room.player2 || (room.gameMode === "bot" ? "Bot" : "Unknown")}</td>
               <td className="px-6 py-4 text-gray-600">{room.gameMode || "N/A"}</td>
               <td className="px-6 py-4">
                 <span

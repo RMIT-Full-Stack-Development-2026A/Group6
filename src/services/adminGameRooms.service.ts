@@ -1,15 +1,37 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
+export interface PlayerReference {
+  _id?: string;
+  username?: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 export interface Room {
   id: string;
   roomNo: string;
   player1: string;
   player2: string | null;
+  opponent: string;
   createdAt: string;
   status: string;
   gameMode?: string;
   aiDifficulty?: string;
 }
+
+const normalizePlayerReference = (player: any): string | null => {
+  if (!player) return null;
+  if (typeof player === "string") return player;
+  if (typeof player !== "object") return String(player);
+
+  if (player.username) return player.username;
+  if (player.name) return player.name;
+  const fullName = [player.firstName, player.lastName].filter(Boolean).join(" ");
+  if (fullName) return fullName;
+  if (player._id) return player._id;
+  return null;
+};
 
 /**
  * Fetch all active game rooms
@@ -31,16 +53,26 @@ export async function getRooms(): Promise<Room[]> {
     const result = await response.json();
     const data = result?.data || [];
 
-    return data.map((room: any) => ({
-      id: room._id || room.id,
-      roomNo: room.name || room._id?.slice(-6).toUpperCase(),
-      player1: room.player1 || "Unknown",
-      player2: room.player2 || null,
-      createdAt: room.createdAt ? new Date(room.createdAt).toLocaleString() : "N/A",
-      status: room.status || "",
-      gameMode: room.gameMode || room.matchType || room.type || "Standard",
-      aiDifficulty: room.aiDifficulty || room.difficulty || undefined,
-    }));
+    return data.map((room: any) => {
+      const player1Value = room.player1 || room.player?.player1 || null;
+      const player2Value = room.player2 || room.player?.player2 || null;
+      const player1Label = normalizePlayerReference(player1Value) || "Unknown";
+      const player2Label = normalizePlayerReference(player2Value) || null;
+      const gameMode = room.gameMode || room.matchType || room.type || "Standard";
+      const opponentLabel = gameMode === "bot" ? "Bot" : player2Label || "Unknown";
+
+      return {
+        id: room._id || room.id,
+        roomNo: room.name || room._id?.slice(-6).toUpperCase(),
+        player1: player1Label,
+        player2: player2Label,
+        opponent: opponentLabel,
+        createdAt: room.createdAt ? new Date(room.createdAt).toLocaleString() : "N/A",
+        status: room.status || "",
+        gameMode,
+        aiDifficulty: room.aiDifficulty || room.difficulty || undefined,
+      };
+    });
   } catch (error) {
     console.error("Error fetching rooms:", error);
     return [];
