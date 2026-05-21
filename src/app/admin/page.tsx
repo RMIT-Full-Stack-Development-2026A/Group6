@@ -9,6 +9,7 @@ import GameRooms from "@/components/admin/GameRooms";
 import Settings from "@/components/admin/Settings";
 import { getUsers, deactivateUser, reactivateUser, deleteUser } from "@/services/adminUserManagement.service";
 import { getRooms, closeRoom, spectateRoom } from "@/services/adminGameRooms.service";
+import { logout } from "@/services/authService";
 import type { User } from "@/services/adminUserManagement.service";
 import type { Room } from "@/services/adminGameRooms.service";
 
@@ -23,6 +24,12 @@ export default function AdminPage() {
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [roomSearchQuery, setRoomSearchQuery] = useState("");
+  const [showRoomFilters, setShowRoomFilters] = useState(false);
+  const [roomFilters, setRoomFilters] = useState({
+    gameMode: "",
+    status: "",
+    aiDifficulty: "",
+  });
   const [authChecked, setAuthChecked] = useState(false);
 
   const loadData = async () => {
@@ -127,12 +134,58 @@ export default function AdminPage() {
     user.username.includes(searchQuery) || user.email.includes(searchQuery)
   );
 
-  const filteredRooms = rooms.filter((room) =>
-    room.id.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
-    room.roomNo.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
-    room.gameMode?.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
-    room.status.toLowerCase().includes(roomSearchQuery.toLowerCase())
-  );
+  const filteredRooms = rooms.filter((room) => {
+    const matchesSearch =
+      room.id.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
+      room.roomNo.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
+      room.gameMode?.toLowerCase().includes(roomSearchQuery.toLowerCase()) ||
+      room.status.toLowerCase().includes(roomSearchQuery.toLowerCase());
+
+    const matchesGameMode =
+      !roomFilters.gameMode || room.gameMode === roomFilters.gameMode;
+
+    const matchesStatus =
+      !roomFilters.status || room.status.toLowerCase().includes(roomFilters.status.toLowerCase());
+
+    const matchesAiDifficulty =
+      !roomFilters.aiDifficulty ||
+      (room.aiDifficulty || "").toLowerCase() === roomFilters.aiDifficulty.toLowerCase();
+
+    return matchesSearch && matchesGameMode && matchesStatus && matchesAiDifficulty;
+  });
+
+  const toggleRoomFilters = () => setShowRoomFilters((prev) => !prev);
+
+  const handleRoomFilterChange = (field: "gameMode" | "status" | "aiDifficulty", value: string) => {
+    setRoomFilters((prev) => {
+      if (field === "gameMode" && value !== "bot") {
+        return {
+          ...prev,
+          gameMode: value,
+          aiDifficulty: "",
+        };
+      }
+
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
+  };
+
+  const clearRoomFilters = () => {
+    setRoomFilters({ gameMode: "", status: "", aiDifficulty: "" });
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      router.push("/login");
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -162,10 +215,14 @@ export default function AdminPage() {
             rooms={filteredRooms}
             searchQuery={roomSearchQuery}
             onSearchChange={setRoomSearchQuery}
-            onFilter={() => console.log("Filter rooms")} 
+            onFilter={toggleRoomFilters}
             onNewRoom={() => console.log("Create new room")}
             onSpectate={(roomId) => spectateRoom(roomId)}
             onClose={(roomId) => closeRoom(roomId)}
+            showFilters={showRoomFilters}
+            roomFilters={roomFilters}
+            onRoomFilterChange={handleRoomFilterChange}
+            onClearFilters={clearRoomFilters}
           />
         );
       case "settings":
@@ -178,7 +235,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-stone-50">
       <div className="flex h-screen">
-        <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} tabs={tabs} />
+        <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} onLogout={handleLogout} tabs={tabs} />
         <div className="flex-1 overflow-y-auto p-8">{renderContent()}</div>
       </div>
     </div>
