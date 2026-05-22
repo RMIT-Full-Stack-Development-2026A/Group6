@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import userService from '../services/user.service';
-import { env } from '../config/env';
 
 class UserController {
   /**
@@ -53,7 +52,7 @@ class UserController {
     try {
       const userId = req.user!.id;
       const updateData = req.body;
-      const baseUrl = env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
 
       const user = await userService.updateUser(userId, updateData, baseUrl);
 
@@ -119,6 +118,82 @@ class UserController {
       });
     } catch (error) {
       res.status(500).json({
+        success: false,
+        message: (error as Error).message,
+      });
+    }
+  }
+
+  /**
+   * Create user (Admin)
+   * @route POST /api/users
+   */
+  async createUser(req: Request, res: Response): Promise<void> {
+    try {
+      const { username, email, password, country, role, currentSubscription } = req.body;
+      const user = await userService.createUser({
+        username,
+        email,
+        password,
+        country,
+        role: role ?? 'player',
+        status: 'active',
+        subscription: false,
+        subscriptionExpires: null,
+        currentSubscription: currentSubscription ?? null,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'User created successfully',
+        data: user,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: (error as Error).message,
+      });
+    }
+  }
+
+  /**
+   * Deactivate user (Admin)
+   * @route PUT /api/users/:id/deactivate
+   */
+  async deactivateUser(req: Request, res: Response): Promise<void> {
+    try {
+      const id = req.params.id as string;
+      const user = await userService.deactivateUser(id);
+
+      res.status(200).json({
+        success: true,
+        message: 'User deactivated successfully',
+        data: user,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: (error as Error).message,
+      });
+    }
+  }
+
+  /**
+   * Reactivate user (Admin)
+   * @route PUT /api/users/:id/reactivate
+   */
+  async reactivateUser(req: Request, res: Response): Promise<void> {
+    try {
+      const id = req.params.id as string;
+      const user = await userService.reactivateUser(id);
+
+      res.status(200).json({
+        success: true,
+        message: 'User reactivated successfully',
+        data: user, 
+      });
+    } catch (error) {
+      res.status(400).json({
         success: false,
         message: (error as Error).message,
       });

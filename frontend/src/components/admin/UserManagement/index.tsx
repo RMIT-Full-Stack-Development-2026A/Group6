@@ -8,6 +8,9 @@ interface UserManagementProps {
   onRegister?: () => void;
   onDeactivate?: (userId: string) => void;
   onReactivate?: (userId: string) => void;
+  onDelete?: (userId: string) => void;
+  searchQuery?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 export default function UserManagement({
@@ -15,11 +18,14 @@ export default function UserManagement({
   onRegister,
   onDeactivate,
   onReactivate,
+  onDelete,
+  searchQuery,
+  onSearchChange, 
 }: UserManagementProps) {
   return (
     <div>
-      <UserManagementHeader onRegister={onRegister} />
-      <UserTable users={users} onDeactivate={onDeactivate} onReactivate={onReactivate} />
+      <UserManagementHeader onRegister={onRegister} searchQuery={searchQuery} onSearchChange={onSearchChange} />
+      <UserTable users={users} onDeactivate={onDeactivate} onReactivate={onReactivate} onDelete={onDelete} />
     </div>
   );
 }

@@ -15,14 +15,14 @@ class AdminService {
     return user;
   }
 
-  // Sets isActive to false, preventing the user from logging in
+  // Sets both `status` and `isActive` so login checks are consistent
   async deactivateUser(id: string): Promise<IUser> {
-    const user = await userRepository.update(id, { isActive: false });
+    const user = await userRepository.update(id, {  isActive: false });
     if (!user) throw new Error('User not found');
     return user;
   }
 
-  // Restores account access by setting isActive back to true
+  // Restores account access by updating both status and active flag
   async reactivateUser(id: string): Promise<IUser> {
     const user = await userRepository.update(id, { isActive: true });
     if (!user) throw new Error('User not found');
