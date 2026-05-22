@@ -14,18 +14,19 @@ export interface ProcessPaymentResponse {
 }
 
 class PaymentService {
+
+  // Validates the payment method, simulates processing, then extends the user's subscription by 30 days
   async processPayment(paymentData: ProcessPaymentRequest): Promise<ProcessPaymentResponse> {
     if (!paymentData.userId || !paymentData.paymentMethod) {
       throw new Error('User ID and payment method are required');
     }
 
-    // Validate payment method
     const validMethods = ['credit_card', 'debit_card', 'paypal', 'apple_pay', 'google_pay'];
     if (!validMethods.includes(paymentData.paymentMethod)) {
       throw new Error('Invalid payment method');
     }
 
-    // Simulate payment processing. In production, integrate with Stripe, PayPal, or another gateway.
+    // In production, replace this with a real Stripe or PayPal gateway call
     const paymentSuccessful = await this.simulatePaymentProcessing(
       paymentData.paymentMethod,
       paymentData.amount
@@ -35,15 +36,15 @@ class PaymentService {
       throw new Error('Payment processing failed');
     }
 
-    // Load the user via the repository before applying subscription updates.
     const user = await userRepository.findById(paymentData.userId);
     if (!user) {
       throw new Error('User not found');
     }
 
+    // If an existing subscription has not yet expired, extend from its current end date
     const now = new Date();
     const currentExpiry = user.subscriptionExpires && user.subscriptionExpires > now ? user.subscriptionExpires : now;
-    const newExpiry = new Date(currentExpiry.getTime() + 30 * 24 * 60 * 60 * 1000); //30 days in millisecond
+    const newExpiry = new Date(currentExpiry.getTime() + 30 * 24 * 60 * 60 * 1000);
 
     const updatedUser = await userRepository.update(paymentData.userId, {
       subscription: true,
@@ -61,6 +62,7 @@ class PaymentService {
     };
   }
 
+  // Removes the subscription flag and clears the expiry date
   async cancelSubscription(userId: string): Promise<ProcessPaymentResponse> {
     if (!userId) {
       throw new Error('User ID is required');
@@ -87,11 +89,9 @@ class PaymentService {
     };
   }
 
+  // Placeholder that mimics gateway latency; replace with a real API call in production
   private async simulatePaymentProcessing(method: string, amount: number): Promise<boolean> {
-    // Simulate payment processing delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Simulate successful payment (in production, this would call payment gateway API)
     console.log(`Processing payment: ${amount} via ${method}`);
     return true;
   }

@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import paymentService from '../services/payment.service';
 
 class PaymentController {
+
+  // Processes a Pro upgrade payment for the logged-in user
   async upgradeToProSuccess(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user!.id;
@@ -15,6 +17,7 @@ class PaymentController {
         return;
       }
 
+      // Subscription cost is fixed at $10 per month
       const result = await paymentService.processPayment({
         userId,
         paymentMethod,
@@ -30,6 +33,7 @@ class PaymentController {
     }
   }
 
+  // Cancels the active subscription for the logged-in user
   async cancelSubscription(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user!.id;

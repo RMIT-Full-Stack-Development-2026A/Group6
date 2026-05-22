@@ -9,6 +9,7 @@ type GameIdParams = { gameId: string };
 
 class GameController {
 
+  // Returns paginated game history for the logged-in user, with optional filters
   async getMyGames(req: Request, res: Response): Promise<void> {
     try {
       const userId   = req.user!.id;
@@ -21,6 +22,7 @@ class GameController {
       const dateTo   = (req.query.dateTo   as string | undefined) || undefined;
       const sortDir  = (req.query.sortDir  as 'asc' | 'desc' | undefined) || 'desc';
 
+      // Use the filter-capable repository method only when at least one filter is active
       const hasFilters = search || result || gameMode || dateFrom || dateTo || sortDir !== 'desc';
 
       let data: { games: any[]; total: number };
@@ -47,11 +49,13 @@ class GameController {
     }
   }
 
+  // Computes win/loss/draw stats and streaks for the logged-in user across all completed games
   async getMyStats(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user!.id;
       const oid = new mongoose.Types.ObjectId(userId);
 
+      // Fetch only completed games where the user is playerX or playerO
       const completedGames = await Game.find({
         $or: [{ 'players.playerX': oid }, { 'players.playerO': oid }],
         status: 'completed',
@@ -70,6 +74,7 @@ class GameController {
       let currentWinStreak = 0, bestWinStreak = 0, currentLossStreak = 0;
       const gridSizeFreq: Record<number, number> = {};
 
+      // Sort by completedAt ascending so streaks are calculated in chronological order
       const sorted = [...completedGames].sort((a, b) => {
         const ta = a.completedAt ? new Date(a.completedAt).getTime() : 0;
         const tb = b.completedAt ? new Date(b.completedAt).getTime() : 0;
@@ -101,6 +106,8 @@ class GameController {
 
       const totalGames = totalWins + totalLosses + totalDraws;
       const winRate = totalGames > 0 ? (totalWins / totalGames) * 100 : 0;
+
+      // Pick the grid size the user has played most often
       const favoriteGridSize = Object.keys(gridSizeFreq).length > 0
         ? parseInt(Object.entries(gridSizeFreq).sort((a, b) => b[1] - a[1])[0][0])
         : null;
@@ -125,6 +132,7 @@ class GameController {
     }
   }
 
+  // Creates a new game record for the logged-in user
   async create(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user!.id;
@@ -135,6 +143,7 @@ class GameController {
     }
   }
 
+  // Returns all games, used by the admin dashboard
   async getAll(req: Request, res: Response): Promise<void> {
     try {
       const games = await gameService.getAllGames();
@@ -144,6 +153,7 @@ class GameController {
     }
   }
 
+  // Returns a single game by its ID
   async getById(req: Request<IdParams>, res: Response): Promise<void> {
     try {
       const game = await gameService.getGameById(req.params.id);
@@ -154,11 +164,12 @@ class GameController {
     }
   }
 
-  // Returns the ordered moves list for premium only game
+  // Returns the ordered moves list for a game; only participants can access this
   async getGameMoves(req: Request<IdParams>, res: Response): Promise<void> {
     try {
       const userId = req.user!.id;
 
+      // Load only the players field first to check participation without pulling the full doc
       const raw = await Game.findById(req.params.id).select('players').lean();
       if (!raw) {
         res.status(404).json({ success: false, message: 'Game not found' });
@@ -197,6 +208,7 @@ class GameController {
     }
   }
 
+  // Updates an existing game by ID
   async update(req: Request<IdParams>, res: Response): Promise<void> {
     try {
       const game = await gameService.updateGame(req.params.id, req.body);
@@ -206,6 +218,7 @@ class GameController {
     }
   }
 
+  // Deletes a game by ID
   async delete(req: Request<IdParams>, res: Response): Promise<void> {
     try {
       await gameService.deleteGame(req.params.id);
@@ -215,6 +228,7 @@ class GameController {
     }
   }
 
+  // Receives the full move list from the frontend after a bot game ends and persists it
   async submitBotGameMoves(req: Request<GameIdParams>, res: Response): Promise<void> {
     try {
       const { gameId } = req.params;

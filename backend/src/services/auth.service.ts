@@ -48,15 +48,18 @@ export interface LoginResponse {
   message: string;
 }
 
+// Max failed attempts before the account is temporarily locked
 const MAX_FAILED_LOGIN_ATTEMPTS = 5;
 const LOGIN_BLOCK_WINDOW_MS = 60 * 1000;
 
+// In-memory store for failed login attempts keyed by user ID or identifier
 const failedLoginAttempts = new Map<string, { count: number; firstAttempt: number }>();
 
 function resetLoginAttempts(key: string): void {
   failedLoginAttempts.delete(key);
 }
 
+// Records a failed attempt and returns the new count for the key
 function recordFailedLoginAttempt(key: string): number {
   const now = Date.now();
   const attempt = failedLoginAttempts.get(key);
@@ -71,16 +74,19 @@ function recordFailedLoginAttempt(key: string): number {
   return attempt.count;
 }
 
+// Returns true if the key has hit the failed attempt limit within the window
 function isLoginBlocked(key: string): boolean {
   const attempt = failedLoginAttempts.get(key);
   return !!attempt && attempt.count >= MAX_FAILED_LOGIN_ATTEMPTS && Date.now() - attempt.firstAttempt <= LOGIN_BLOCK_WINDOW_MS;
 }
 
+// Checks the token blacklist to guard against reuse of logged-out tokens
 export async function isTokenBlacklisted(token: string): Promise<boolean> {
   const existing = await TokenBlacklist.exists({ token });
   return Boolean(existing);
 }
 
+// Validates all signup fields and throws a descriptive error on the first failure
 function validateSignupData(signupData: SignupRequest): void {
   if (!signupData.email || !signupData.password || !signupData.username || !signupData.country) {
     throw new Error('Email, username, password, and country are required');
@@ -136,6 +142,8 @@ function validateSignupData(signupData: SignupRequest): void {
 
 
 class AuthService {
+
+  // Adds the token to the blacklist so it cannot be reused after logout
   async logout(token: string): Promise<void> {
     const decoded = jwt.decode(token) as { exp?: number } | null;
     const expiresAt = decoded?.exp
@@ -153,8 +161,7 @@ class AuthService {
     
     validateSignupData(signupData);
 
-    // Use the User repository to check if this email already exists.
-    // This centralizes user queries and avoids direct model access from the auth service.
+    // Use the user repository to check for duplicates before creating the account
     const existingUser = await userRepository.findByEmail(signupData.email);
     if (existingUser) {
       throw new Error('Email already exists');
@@ -176,7 +183,7 @@ class AuthService {
       subscriptionExpires: null,
     });
 
-    // Generate JWT token
+    // Sign a 7-day JWT for the new user
     const token = jwt.sign(
       {
         id: user._id.toString(),
@@ -214,12 +221,14 @@ class AuthService {
       throw new Error('Username or email is required');
     }
 
+    // Accept either email or username as the login identifier
     const normalizedIdentifier = identifier.toLowerCase();
     let user = await userRepository.findByEmail(normalizedIdentifier);
     if (!user) {
       user = await userRepository.findByUsername(identifier);
     }
 
+    // Key by user ID when found, otherwise by the raw identifier to still track lockout
     const loginKey = user ? user._id.toString() : normalizedIdentifier;
 
     if (isLoginBlocked(loginKey)) {
@@ -243,6 +252,7 @@ class AuthService {
       throw new Error('Invalid credentials');
     }
 
+    // Clear the failure count on a successful login
     resetLoginAttempts(loginKey);
 
     const token = jwt.sign(

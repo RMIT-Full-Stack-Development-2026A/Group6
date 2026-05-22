@@ -2,28 +2,20 @@ import mongoose from 'mongoose';
 import gameRepository from '../repositories/game.repository';
 import { IGame, IMove, CellValue } from '../models/game.model';
 
-
-
+// Represents a single move in algebraic notation (e.g. "a1") with optional pre-parsed coords
 export interface AlgebraicMove {
-
   notation: string;
-
   row: number;
-
   col: number;
 }
 
 export interface BotGamePayload {
-
   playerMoves: AlgebraicMove[];
- 
   botMoves: AlgebraicMove[];
-
   last_move: string;
 }
 
-
-
+// Converts a zero-based column index to a spreadsheet-style letter string (0 -> "a", 26 -> "aa")
 export function colToAlpha(col: number): string {
   let result = '';
   let n = col;
@@ -34,6 +26,7 @@ export function colToAlpha(col: number): string {
   return result;
 }
 
+// Parses algebraic notation into row/col coordinates relative to the given grid size
 export function algebraicToCoords(
   notation: string,
   gridSize: number
@@ -51,11 +44,13 @@ export function algebraicToCoords(
   }
   col -= 1;
 
+  // Row numbering is bottom-up, so row 1 maps to the last row index
   const row = gridSize - number;
 
   return { row, col };
 }
 
+// Merges player and bot move arrays into a single chronologically ordered IMove list
 function buildMoveList(
   playerMoves: AlgebraicMove[],
   botMoves: AlgebraicMove[],
@@ -79,7 +74,7 @@ function buildMoveList(
       algebraic: m.notation,
     },
     symbol,
-    
+    // Stagger timestamps by 500ms to preserve move order in the DB
     timestamp: new Date(Date.now() + idx * 500),
   } as IMove);
 
@@ -95,7 +90,7 @@ function buildMoveList(
     .map((x) => x.move);
 }
 
-
+// Reconstructs the final board state from the two move lists
 function buildBoardState(
   gridSize: number,
   playerMoves: AlgebraicMove[],
@@ -123,10 +118,9 @@ function buildBoardState(
 }
 
 
-
 class GameService {
 
-
+  // Creates a new game document with the calling user set as the owner
   async createGame(userId: string, gameData: Partial<IGame>): Promise<IGame> {
     try {
       const oid = new mongoose.Types.ObjectId(userId);
@@ -145,6 +139,7 @@ class GameService {
     }
   }
 
+  // Fetches a single game or throws if it does not exist
   async getGameById(id: string): Promise<IGame> {
     try {
       const game = await gameRepository.findById(id);
@@ -155,6 +150,7 @@ class GameService {
     }
   }
 
+  // Returns every game in the collection, intended for admin use
   async getAllGames(): Promise<IGame[]> {
     try {
       return await gameRepository.findAll();
@@ -163,6 +159,7 @@ class GameService {
     }
   }
 
+  // Returns paginated games for a specific player
   async getGamesByPlayer(userId: string, page: number, limit: number): Promise<{ games: IGame[]; total: number }> {
     try {
       return await gameRepository.findByPlayerPaginated(userId, page, limit);
@@ -171,6 +168,7 @@ class GameService {
     }
   }
 
+  // Applies a partial update to a game document
   async updateGame(id: string, gameData: Partial<IGame>): Promise<IGame> {
     try {
       const game = await gameRepository.update(id, gameData);
@@ -181,6 +179,7 @@ class GameService {
     }
   }
 
+  // Permanently removes a game document
   async deleteGame(id: string): Promise<IGame> {
     try {
       const game = await gameRepository.delete(id);
@@ -191,6 +190,7 @@ class GameService {
     }
   }
 
+  // Entry point for persisting a finished bot game, delegates to recordBotGameMoves
   async saveBotGame(
     gameId: string,
     userId: string,
@@ -202,12 +202,12 @@ class GameService {
     return this.recordBotGameMoves(gameId, playerMoves, botMoves, last_move, outcome);
   }
 
+  // Validates the game state then writes moves, board, result and status in one update
   async recordBotGameMoves(
     gameId: string,
     playerMoves: AlgebraicMove[],
     botMoves: AlgebraicMove[],
     last_move: string,
-   
     outcome: 'player' | 'bot' | 'draw' | 'abandoned'
   ): Promise<IGame> {
    
@@ -220,7 +220,7 @@ class GameService {
 
     const gridSize = game.gridSize;
 
-    
+    // The human player always takes the side that is set on the game document
     const playerSymbol: 'X' | 'O' =
       game.players.playerX ? 'X' : 'O';
     const botSymbol: 'X' | 'O' = playerSymbol === 'X' ? 'O' : 'X';
@@ -228,8 +228,10 @@ class GameService {
     const playerId = game.players.playerX ?? game.players.playerO;
     if (!playerId) throw new Error('No player found on game');
 
+    // Fixed sentinel ObjectId used to identify the AI in the moves list
     const BOT_OID = new mongoose.Types.ObjectId('000000000000000000000001');
 
+    // Normalize notation to lowercase before processing
     const normalizedPlayerMoves = playerMoves.map((m) => ({
       ...m,
       notation: m.notation.toLowerCase(),
@@ -249,7 +251,6 @@ class GameService {
       gridSize
     );
 
-  
     const boardState = buildBoardState(
       gridSize,
       normalizedPlayerMoves,
@@ -258,7 +259,7 @@ class GameService {
       botSymbol
     );
 
-    
+    // Map outcome string to the status/result/winner fields expected by the model
     let status: IGame['status'];
     let result: IGame['result'];
     let winner: IGame['winner'];
@@ -287,7 +288,6 @@ class GameService {
         break;
     }
 
-  
     const updated = await gameRepository.submitBotMoves(
       gameId,
       moves,

@@ -6,6 +6,7 @@ interface BotRequest {
   tableSize?: number;
 }
 
+// Delegates to the correct bot algorithm based on the requested difficulty level
 async function computeMove(difficulty: string, payload: BotRequest) {
   const fn = getBotByDifficulty(difficulty);
   const state = payload.state || { player: [], bot: [] };

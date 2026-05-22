@@ -7,6 +7,8 @@ import { ISubscription } from '../models/subscription.model';
 import { IUser } from '../models/user.model';
 
 class SubscriptionService {
+
+  // Returns a single subscription plan or throws if it does not exist
   async getSubscriptionById(subscriptionId: string): Promise<ISubscription> {
     const subscription = await subscriptionRepository.findById(subscriptionId);
     if (!subscription) {
@@ -15,14 +17,17 @@ class SubscriptionService {
     return subscription;
   }
 
+  // Returns all plans; pass activeOnly=true to exclude disabled plans
   async getAllSubscriptions(activeOnly: boolean = false): Promise<ISubscription[]> {
     return await subscriptionRepository.findAll(activeOnly);
   }
 
+  // Convenience wrapper that returns only active plans
   async getActiveSubscriptions(): Promise<ISubscription[]> {
     return await subscriptionRepository.findActive();
   }
 
+  // Creates a new plan after checking that the name is not already in use
   async createSubscription(subscriptionData: CreateSubscriptionData): Promise<ISubscription> {
     const existingSubscription = await subscriptionRepository.findByName(subscriptionData.name);
     if (existingSubscription) {
@@ -40,6 +45,7 @@ class SubscriptionService {
     return await subscriptionRepository.create(subscriptionData);
   }
 
+  // Updates an existing plan; checks for name conflicts if the name is being changed
   async updateSubscription(
     subscriptionId: string,
     updateData: UpdateSubscriptionData
@@ -71,6 +77,7 @@ class SubscriptionService {
     return updated;
   }
 
+  // Permanently removes a subscription plan
   async deleteSubscription(subscriptionId: string): Promise<ISubscription> {
     const subscription = await subscriptionRepository.findById(subscriptionId);
     if (!subscription) {
@@ -84,6 +91,7 @@ class SubscriptionService {
     return deleted;
   }
 
+  // Enables or disables a plan without deleting it
   async toggleSubscriptionStatus(
     subscriptionId: string,
     isActive: boolean
@@ -100,8 +108,8 @@ class SubscriptionService {
     return updated;
   }
 
+  // Links a user to a subscription plan after confirming the plan is active
   async subscribeUser(userId: string, subscriptionId: string): Promise<IUser> {
-    // Ensure the chosen subscription exists and is active before updating the user.
     const subscription = await subscriptionRepository.findById(subscriptionId);
     if (!subscription) {
       throw new Error('Subscription plan not found');
@@ -111,7 +119,7 @@ class SubscriptionService {
       throw new Error('This subscription plan is not available');
     }
 
-    // Update the user's subscription status through the repository layer.
+    // Update subscription flag through the repository layer
     const user = await userRepository.updateSubscription(userId, true);
     if (!user) {
       throw new Error('User not found');
@@ -120,6 +128,7 @@ class SubscriptionService {
     return user;
   }
 
+  // Removes the subscription flag from the user
   async unsubscribeUser(userId: string): Promise<IUser> {
     const user = await userRepository.updateSubscription(userId, false);
     if (!user) {
