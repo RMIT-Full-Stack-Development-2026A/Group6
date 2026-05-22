@@ -62,7 +62,7 @@ BASE_URL=your_domain_url
 `MONGODB_URI`, `BASE_URL` and `JWT_SECRET` are required — the server will refuse to start without them.
 For `BASE_URL`, if you want to run the application locally, set this param as `http://localhost:5000`
 
-Create a `.env` file inside the root `/` (frontend) with the following variable:
+Create a `.env` file inside `/frontend` with the following variables:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=your_domain_url
