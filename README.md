@@ -50,10 +50,19 @@ MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 PORT=5000
 NODE_ENV=development
-BASE_URL=http://localhost:5000
+BASE_URL=your_domain_url
 ```
 
-`MONGODB_URI` and `JWT_SECRET` are required — the server will refuse to start without them.
+`MONGODB_URI`, `BASE_URL` and `JWT_SECRET` are required — the server will refuse to start without them.
+For `BASE_URL`, if you want to run the application locally, set this param as `http://localhost:5000`
+
+Create a `.env` file inside `/backend` with the following variables:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=your_domain_url
+```
+
+For `NEXT_PUBLIC_API_BASE_URL`, if set this param the same as `BASE_URL` above
 
 ### Seeding the Database
 
@@ -64,7 +73,7 @@ cd backend
 npm run seed
 ```
 
-### Running the App
+### Running the App (Dev mode)
 
 ```bash
 # Start backend (from /backend)
@@ -73,6 +82,22 @@ npm run dev
 # Start frontend (from root)
 pnpm dev
 ```
+
+### Running the App (Deploy mode)
+
+```bash
+# From root location
+# Build and run frontend
+pnpm run build
+pnpm run start
+
+# Build and run backend
+cd ./backend
+pnpm run build
+pnpm run start
+```
+
+If the terminal returns errors regarding build script, run `pnpm accept-builds`
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
 The backend runs on [http://localhost:5000](http://localhost:5000).
