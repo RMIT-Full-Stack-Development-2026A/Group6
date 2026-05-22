@@ -243,6 +243,10 @@ class AuthService {
       throw new Error('Invalid credentials');
     }
 
+    if (user.isActive === false || user.status === 'deactive') {
+      throw new Error('Your account is deactivated.');
+    }
+
     const isPasswordValid = await bcryptjs.compare(loginData.password, user.password);
     if (!isPasswordValid) {
       const failedCount = recordFailedLoginAttempt(loginKey);
