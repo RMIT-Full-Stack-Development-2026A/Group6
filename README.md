@@ -210,8 +210,8 @@ DB status: `GET /api/db-status`
 
 ## Team Contributions
 
-| Member | Student ID | Role | Assigned Tasks | Contribution Score |
-|--------|------------|------|----------------|--------------------|
-| Hung Cao Van Viet | s4117172 | Project Manager | Frontend templates, frontend folder structure, implemented bots, created various diagrams, set up cloud hosting, managed goals and deadlines for the team, many QOL updates | 5 / 5 |
-| Johnny Tran | s4071162 | Member | Data model, backend folder structure, profile manager, playfield, play logic, testing, database seeding, majority of backend development, responsive pages | 5 / 5 |
-| Hoc Tran Nguyen Bao | s4038330 | Member | Login and signup, token validation, wireframes, admin dashboard, subscription services, part of frontend folder structure, basic CRUD operations | 5 / 5 |
+| Member | Github Name | Student ID | Role | Assigned Tasks | Contribution Score |
+|--------|------------|------------|------|----------------|--------------------|
+| Hung Cao Van Viet | ShiinaKochiya | s4117172 | Project Manager | Frontend templates, frontend folder structure, implemented bots, created various diagrams, set up cloud hosting, managed goals and deadlines for the team, many QOL updates | 5 / 5 |
+| Johnny Tran | JohnnyTran12345 | s4071162 | Member | Data model, backend folder structure, profile manager, playfield, play logic, testing, database seeding, majority of backend development, responsive pages | 5 / 5 |
+| Hoc Tran Nguyen Bao | Ricobaohoc13 | s4038330 | Member | Login and signup, token validation, wireframes, admin dashboard, subscription services, part of frontend folder structure, basic CRUD operations | 5 / 5 |
