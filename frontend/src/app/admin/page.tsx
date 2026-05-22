@@ -47,6 +47,8 @@ export default function AdminPage() {
               onDeactivate={handleDeactivate}
               onReactivate={handleReactivate}
               onDelete={handleDelete}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
             />
             {showRegisterModal && (
               <RegisterPlayerForm
