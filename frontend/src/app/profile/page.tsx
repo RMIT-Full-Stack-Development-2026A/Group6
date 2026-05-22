@@ -29,6 +29,12 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
     try {
       const userData = isOwnProfile ? await getProfile() : await getUserById(userId!);
       setUser(userData);
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(userData));
+          window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: userData }));
+        }
+      } catch {}
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
     } finally {
@@ -37,6 +43,19 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
   };
 
   const handleUserUpdate = (updatedUser: User) => setUser(updatedUser);
+
+  // Propagate profile updates to other UI parts (navbar) and persist to storage
+  const handleUserUpdateAndBroadcast = (updatedUser: User) => {
+    setUser(updatedUser);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: updatedUser }));
+      }
+    } catch {
+      // ignore storage errors
+    }
+  };
 
   const handleAvatarChange = async (avatarUrl: string) => {
     if (!user) return;
@@ -48,11 +67,11 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
     );
 
     try {
+      // send only the profile avatar to avoid accidental schema mismatches
       const updatedUser = await updateProfile({
-        username: user.username,
-        profile: { country: user.profile.country, avatar: avatarUrl },
+        profile: { avatar: avatarUrl },
       });
-      setUser(updatedUser);
+      handleUserUpdateAndBroadcast(updatedUser);
     } catch (error) {
       console.error('Failed to save avatar', error);
     }
@@ -125,9 +144,9 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
               <>
                 {activeSection === 'profile' && (
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <EditInfoSection user={user} onUpdate={handleUserUpdate} />
-                      <GameplayPreferencesSection user={user} onUpdate={handleUserUpdate} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <EditInfoSection user={user} onUpdate={handleUserUpdateAndBroadcast} />
+                              <GameplayPreferencesSection user={user} onUpdate={handleUserUpdateAndBroadcast} />
                     </div>
                     <SecuritySection />
                   </>

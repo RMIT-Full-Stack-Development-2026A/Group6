@@ -72,6 +72,20 @@ class UserService {
     delete updateData.role;
     delete updateData.subscription;
 
+    // Merge incoming profile fields with existing profile to avoid unintentionally
+    // overwriting subdocument fields (for example: saving firstName without
+    // avatar would remove avatar if we replaced the whole `profile`).
+    if (updateData.profile) {
+      const existing = await userRepository.findById(userId);
+      if (!existing) {
+        throw new Error('User not found');
+      }
+      updateData.profile = {
+        ...(existing.profile as any),
+        ...updateData.profile,
+      };
+    }
+
     if (updateData.profile?.avatar && isBase64Image(updateData.profile.avatar)) {
       const avatarUrl = await saveAvatarFromBase64(userId, updateData.profile.avatar, baseUrl);
       updateData = {

@@ -4,12 +4,14 @@ import Link from "next/link"
 import React, { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { logout } from "@/services/authService"
+import { getProfile } from '@/services/userService'
 
 export default function NavBar() {
   const pathname = usePathname()
   const router = useRouter()
   const [isSignedIn, setIsSignedIn] = useState(false)
   const [username, setUsername] = useState("")
+  const [avatar, setAvatar] = useState<string | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -23,6 +25,16 @@ export default function NavBar() {
       try {
         const parsed = JSON.parse(user)
         setUsername(parsed.username || "")
+        // Attempt to get the freshest profile (may include avatar URL)
+        getProfile()
+          .then((full) => {
+            setAvatar(full.profile?.avatar || null)
+            setUsername(full.username || parsed.username || "")
+          })
+          .catch(() => {
+            // fallback to stored user
+            setAvatar((parsed as any).profile?.avatar || null)
+          })
       } catch {
         setUsername("")
       }
@@ -38,6 +50,21 @@ export default function NavBar() {
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
+
+  // Listen for profile updates broadcasted elsewhere in the app
+  useEffect(() => {
+    function onProfileUpdated(e: Event) {
+      const detail = (e as CustomEvent).detail as any
+      if (detail) {
+        setAvatar(detail.profile?.avatar || null)
+        setUsername(detail.username || detail.username || username)
+        setIsSignedIn(true)
+      }
+    }
+
+    window.addEventListener('userProfileUpdated', onProfileUpdated as EventListener)
+    return () => window.removeEventListener('userProfileUpdated', onProfileUpdated as EventListener)
+  }, [username])
 
   if (isAdminPage) {
     return (
@@ -92,10 +119,14 @@ export default function NavBar() {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen((prev) => !prev)}
-                  className="flex items-center justify-center w-9 h-9 rounded-full bg-[#006948] text-white font-semibold text-sm hover:bg-[#005237] transition-colors focus:outline-none focus:ring-2 focus:ring-[#006948] focus:ring-offset-2"
+                  className="flex items-center justify-center w-9 h-9 rounded-full overflow-hidden bg-[#006948] text-white font-semibold text-sm hover:bg-[#005237] transition-colors focus:outline-none focus:ring-2 focus:ring-[#006948] focus:ring-offset-2"
                   aria-label="Profile menu"
                 >
-                  {username ? username.charAt(0).toUpperCase() : "U"}
+                  {avatar ? (
+                    <img src={avatar} alt={username || 'User'} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="inline-block w-full h-full flex items-center justify-center">{username ? username.charAt(0).toUpperCase() : 'U'}</span>
+                  )}
                 </button>
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
