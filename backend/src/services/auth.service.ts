@@ -243,7 +243,7 @@ class AuthService {
       throw new Error('Invalid credentials');
     }
 
-    if (user.isActive === false || user.status === 'deactive') {
+    if (user.isActive === false ) {
       throw new Error('Your account is deactivated.');
     }
 
